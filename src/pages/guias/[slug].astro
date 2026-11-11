@@ -1,0 +1,23 @@
+---
+// Página de guía: versión mínima para que los enlaces del listado funcionen.
+// El checklist con progreso, la barra y los bugs conocidos llegan en la etapa (c).
+import { getCollection, type CollectionEntry } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import VerificationBadge from '../../components/VerificationBadge.astro';
+
+export async function getStaticPaths() {
+  const guias = await getCollection('guias');
+  return guias.map((guia) => ({ params: { slug: guia.data.slug }, props: { guia } }));
+}
+
+const { guia } = Astro.props as { guia: CollectionEntry<'guias'> };
+const { data } = guia;
+---
+
+<BaseLayout title={data.title} description={data.summary}>
+  <p><a href="/guias/">← Volver a las guías</a></p>
+  <h1>{data.title}</h1>
+  <VerificationBadge {...data.verification} detailed />
+  <p>{data.summary}</p>
+  <p><em>Checklist en construcción (etapa c).</em></p>
+</BaseLayout>

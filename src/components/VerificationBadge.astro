@@ -1,0 +1,85 @@
+---
+// Badge de verificación. Cada estado se distingue por ícono, texto y estilo de borde,
+// no solo por color (así funciona también con daltonismo o en escala de grises).
+import { STATUS_LABELS, formatDate, type Status } from '../lib/guides';
+
+interface Props {
+  status: Status;
+  lastVerified?: Date;
+  verifiedBy?: string;
+  /** Muestra fecha y autor junto al badge (página de guía). */
+  detailed?: boolean;
+}
+const { status, lastVerified, verifiedBy, detailed = false } = Astro.props;
+const icon = { verificado: '✓', 'sin-verificar': '?', desactualizado: '!' }[status];
+---
+
+<span class:list={['badge', `badge--${status}`]}>
+  <span class="badge__icon" aria-hidden="true">{icon}</span>
+  <span>{STATUS_LABELS[status]}</span>
+  {
+    detailed && lastVerified && (
+      <span class="badge__meta">
+        · <time datetime={lastVerified.toISOString().slice(0, 10)}>{formatDate(lastVerified)}</time>
+        {verifiedBy && <> por {verifiedBy}</>}
+      </span>
+    )
+  }
+</span>
+
+<style>
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    padding: 0.2em 0.65em 0.2em 0.3em;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    line-height: 1.4;
+    white-space: nowrap;
+  }
+  .badge__icon {
+    display: inline-grid;
+    place-items: center;
+    width: 1.35em;
+    height: 1.35em;
+    border-radius: 50%;
+    font-size: 0.85em;
+  }
+  .badge__meta {
+    font-weight: 400;
+  }
+
+  /* Verificado: sólido, verde, check */
+  .badge--verificado {
+    background: #1f6b3a;
+    color: #f2fff5;
+    border: 2px solid #1f6b3a;
+  }
+  .badge--verificado .badge__icon {
+    background: #f2fff5;
+    color: #1f6b3a;
+  }
+
+  /* Sin verificar: fondo transparente, borde punteado ámbar, signo de pregunta */
+  .badge--sin-verificar {
+    background: transparent;
+    color: #ffd27a;
+    border: 2px dashed #ffd27a;
+  }
+  .badge--sin-verificar .badge__icon {
+    border: 2px dashed currentColor;
+  }
+
+  /* Desactualizado: rayado, rojo, exclamación */
+  .badge--desactualizado {
+    background: repeating-linear-gradient(-45deg, #5c1a1a 0 6px, #7a2222 6px 12px);
+    color: #ffe3e0;
+    border: 2px solid #ff8a80;
+  }
+  .badge--desactualizado .badge__icon {
+    background: #ff8a80;
+    color: #3a0d0d;
+  }
+</style>

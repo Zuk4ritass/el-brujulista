@@ -1,0 +1,71 @@
+---
+// Filtros del listado. Se muestran solo con JS activo (atributo `hidden` que quita el script);
+// sin JS el listado se ve completo, sin controles que no hacen nada.
+import { CATEGORY_LABELS, LEVEL_RANGES, type Category } from '../lib/guides';
+
+interface Props {
+  categories: Category[];
+}
+const { categories } = Astro.props;
+---
+
+<form class="filters" id="filtros" role="search" aria-label="Filtrar guías" hidden>
+  <div class="filters__field">
+    <label for="f-nivel">Rango de nivel</label>
+    <select id="f-nivel" name="nivel">
+      <option value="">Todos los niveles</option>
+      {LEVEL_RANGES.map((r) => <option value={r.value}>{r.label}</option>)}
+    </select>
+  </div>
+  <div class="filters__field">
+    <label for="f-categoria">Categoría</label>
+    <select id="f-categoria" name="categoria">
+      <option value="">Todas las categorías</option>
+      {categories.map((c) => <option value={c}>{CATEGORY_LABELS[c]}</option>)}
+    </select>
+  </div>
+  <button type="reset" class="filters__reset">Limpiar filtros</button>
+</form>
+
+<style>
+  .filters {
+    display: grid;
+    gap: 0.75rem;
+    margin: 1rem 0 0.5rem;
+  }
+  .filters[hidden] {
+    display: none;
+  }
+  @media (min-width: 640px) {
+    .filters {
+      grid-template-columns: 1fr 1fr auto;
+      align-items: end;
+    }
+  }
+  .filters__field {
+    display: grid;
+    gap: 0.3rem;
+  }
+  label {
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
+  select,
+  .filters__reset {
+    min-height: 44px;
+    padding: 0.4rem 0.6rem;
+    font: inherit;
+    color: inherit;
+    background: var(--surface, #241b14);
+    border: 1px solid var(--border, #6b5640);
+    border-radius: 8px;
+  }
+  .filters__reset {
+    cursor: pointer;
+  }
+  select:focus-visible,
+  .filters__reset:focus-visible {
+    outline: 3px solid var(--focus, #ffcf5a);
+    outline-offset: 2px;
+  }
+</style>

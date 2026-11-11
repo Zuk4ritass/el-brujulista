@@ -37,3 +37,62 @@ const fullTitle = title === 'Inicio' ? 'Guías Trefus' : `${title} · Guías Tre
     </footer>
   </body>
 </html>
+
+<style is:global>
+  /* Base provisional (etapa b). El tema retro completo llega en la etapa (d). */
+  :root {
+    --bg: #17110c;
+    --surface: #241b14;
+    --border: #6b5640;
+    --text: #f3e9d8;
+    --focus: #ffcf5a;
+    --link: #ffcf5a;
+  }
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+  [hidden] {
+    display: none !important;
+  }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 1.0625rem/1.6 system-ui, sans-serif;
+  }
+  a {
+    color: var(--link);
+  }
+  :focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+  }
+  header nav,
+  main,
+  footer {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 1rem;
+  }
+  header nav {
+    display: flex;
+    gap: 1rem;
+  }
+  footer {
+    font-size: 0.875rem;
+    opacity: 0.85;
+    border-top: 1px solid var(--border);
+  }
+  .skip {
+    position: absolute;
+    left: -9999px;
+  }
+  .skip:focus {
+    left: 1rem;
+    top: 1rem;
+    padding: 0.5rem 1rem;
+    background: var(--surface);
+  }
+</style>
