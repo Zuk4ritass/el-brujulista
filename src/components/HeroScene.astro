@@ -1,0 +1,337 @@
+---
+// Escena decorativa del héroe: cielo al atardecer, montañas nevadas, islas flotantes,
+// nubes y luciérnagas. Todo dibujado en SVG propio (sin assets del juego).
+// Parallax con el mouse y el scroll; se desactiva con prefers-reduced-motion.
+
+// Pseudo-aleatorio con semilla: las estrellas salen igual en cada build.
+function rng(seed: number) {
+  return () => {
+    seed = (seed * 16807) % 2147483647;
+    return (seed - 1) / 2147483646;
+  };
+}
+const r = rng(29);
+const stars = Array.from({ length: 46 }, () => ({
+  x: Math.round(r() * 1440),
+  y: Math.round(r() * 380),
+  s: +(0.6 + r() * 1.6).toFixed(2),
+  d: +(r() * 5).toFixed(2),
+}));
+const fireflies = Array.from({ length: 14 }, () => ({
+  left: +(r() * 100).toFixed(1),
+  delay: +(r() * 9).toFixed(1),
+  dur: +(7 + r() * 7).toFixed(1),
+  size: +(3 + r() * 4).toFixed(1),
+  drift: Math.round(-40 + r() * 80),
+}));
+---
+
+<div class="scene" aria-hidden="true" data-parallax>
+  <svg viewBox="0 0 1440 760" preserveAspectRatio="xMidYMax slice" focusable="false">
+    <defs>
+      <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#0d1430" />
+        <stop offset=".38" stop-color="#2b2853" />
+        <stop offset=".68" stop-color="#7b3e4f" />
+        <stop offset="1" stop-color="#e4894a" />
+      </linearGradient>
+      <radialGradient id="sun" cx=".5" cy=".5" r=".5">
+        <stop offset="0" stop-color="#ffe2a0" stop-opacity=".95" />
+        <stop offset=".35" stop-color="#ffb860" stop-opacity=".45" />
+        <stop offset="1" stop-color="#ff8a3d" stop-opacity="0" />
+      </radialGradient>
+      <linearGradient id="rock" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#6b4a2e" />
+        <stop offset="1" stop-color="#24170d" />
+      </linearGradient>
+      <linearGradient id="grass" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#9fcf48" />
+        <stop offset="1" stop-color="#4f7a1c" />
+      </linearGradient>
+      <linearGradient id="snow" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#ffffff" />
+        <stop offset="1" stop-color="#b9cbe6" />
+      </linearGradient>
+      <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#140e09" stop-opacity="0" />
+        <stop offset="1" stop-color="#140e09" />
+      </linearGradient>
+      <!-- Isla flotante reutilizable: césped arriba, roca colgando abajo, un árbol -->
+      <g id="island">
+        <path d="M-120 0 L120 0 L96 26 L70 70 L40 92 L18 140 L0 180 L-14 132 L-44 104 L-70 64 L-100 30 Z" fill="url(#rock)" />
+        <path d="M-40 40 L-20 90 M30 30 L44 70 M-80 22 L-64 46" stroke="#1a100a" stroke-width="3" opacity=".5" />
+        <path d="M-128 2 Q-120 -18 -80 -16 Q-40 -26 0 -18 Q50 -28 90 -16 Q126 -18 128 2 Q90 14 0 10 Q-90 14 -128 2 Z" fill="url(#grass)" />
+        <path d="M-118 4 q8 10 16 0 q8 12 18 0 q10 10 18 0" fill="#4f7a1c" />
+        <g transform="translate(46 -16)">
+          <rect x="-5" y="-46" width="10" height="46" rx="3" fill="#4a2f1a" />
+          <circle cx="0" cy="-60" r="26" fill="#5d8f24" />
+          <circle cx="-16" cy="-48" r="18" fill="#6fa52c" />
+          <circle cx="14" cy="-46" r="16" fill="#4f7a1c" />
+          <circle cx="-6" cy="-68" r="12" fill="#86bf3a" />
+        </g>
+      </g>
+      <g id="island-snow">
+        <path d="M-90 0 L90 0 L70 30 L40 64 L12 110 L0 130 L-20 90 L-52 60 L-76 26 Z" fill="#3a4766" />
+        <path d="M-96 2 Q-70 -22 -20 -14 Q30 -30 96 2 Q40 14 0 10 Q-50 14 -96 2 Z" fill="url(#snow)" />
+        <path d="M-30 -10 l14 -40 l14 40 z M6 -10 l12 -30 l12 30 z" fill="#2c5a52" />
+        <path d="M-23 -30 l7 -20 l7 20 z M12 -24 l6 -16 l6 16 z" fill="#f2f6fb" />
+      </g>
+    </defs>
+
+    <!-- Cielo -->
+    <rect width="1440" height="760" fill="url(#sky)" />
+    <g class="layer" style="--d:.05">
+      <circle cx="1090" cy="520" r="230" fill="url(#sun)" />
+    </g>
+
+    <!-- Estrellas -->
+    <g class="layer" style="--d:.08">
+      {stars.map((s) => <circle class="star" cx={s.x} cy={s.y} r={s.s} style={`--tw:${s.d}s`} />)}
+    </g>
+
+    <!-- Montañas nevadas lejanas -->
+    <g class="layer" style="--d:.15">
+      <path
+        d="M0 560 L120 430 L200 500 L330 360 L450 480 L560 400 L700 520 L820 380 L950 470 L1080 350 L1220 470 L1330 400 L1440 460 L1440 760 L0 760 Z"
+        fill="#2c3352"
+      />
+      <path
+        d="M330 360 L300 392 L322 386 L340 402 L360 384 L376 394 Z M820 380 L792 410 L812 404 L830 418 L846 402 L862 408 Z M1080 350 L1046 386 L1070 380 L1088 396 L1104 380 L1124 388 Z M120 430 L98 454 L116 450 L130 462 L144 452 Z"
+        fill="#dfe8f5"
+        opacity=".85"
+      />
+    </g>
+
+    <!-- Nubes lejanas -->
+    <g class="layer" style="--d:.22">
+      <g class="cloud cloud--slow">
+        <ellipse cx="200" cy="250" rx="140" ry="26" fill="#f3e6cc" opacity=".12" />
+        <ellipse cx="260" cy="236" rx="80" ry="22" fill="#f3e6cc" opacity=".1" />
+      </g>
+      <g class="cloud cloud--mid">
+        <ellipse cx="980" cy="180" rx="170" ry="24" fill="#f3e6cc" opacity=".1" />
+        <ellipse cx="920" cy="168" rx="70" ry="18" fill="#f3e6cc" opacity=".1" />
+      </g>
+    </g>
+
+    <!-- Colinas medias -->
+    <g class="layer" style="--d:.3">
+      <path d="M0 620 Q180 540 380 600 T760 590 T1120 580 T1440 600 L1440 760 L0 760 Z" fill="#3a2a2e" />
+    </g>
+
+    <!-- Islas flotantes -->
+    <g class="layer" style="--d:.45">
+      <g transform="translate(1290 230) scale(.7)">
+        <g class="bob" style="--bob:7s;--bob-delay:-2s">
+          <use href="#island-snow" />
+        </g>
+      </g>
+      <g transform="translate(760 170) scale(.42)">
+        <g class="bob" style="--bob:6s;--bob-delay:-4s">
+          <use href="#island" />
+        </g>
+      </g>
+    </g>
+    <g class="layer" style="--d:.7">
+      <g transform="translate(1010 400)">
+        <g class="bob" style="--bob:8s">
+          <use href="#island" />
+        </g>
+      </g>
+    </g>
+
+    <!-- Nube cercana -->
+    <g class="layer" style="--d:.85">
+      <g class="cloud cloud--fast">
+        <ellipse cx="620" cy="470" rx="220" ry="34" fill="#f3e6cc" opacity=".08" />
+      </g>
+    </g>
+
+    <!-- Primer plano: colinas oscuras que se funden con la página -->
+    <g class="layer" style="--d:1">
+      <path d="M0 680 Q200 620 420 670 Q640 720 860 660 Q1100 600 1440 670 L1440 760 L0 760 Z" fill="#1c140d" />
+      <path d="M60 676 l6 -18 l6 18 M90 672 l5 -14 l5 14 M1300 662 l6 -20 l6 20 M1330 660 l5 -14 l5 14" stroke="#2c1f13" stroke-width="4" fill="none" />
+    </g>
+    <rect y="600" width="1440" height="160" fill="url(#fade)" />
+  </svg>
+
+  <div class="fireflies">
+    {
+      fireflies.map((f) => (
+        <span
+          style={`left:${f.left}%;--delay:${f.delay}s;--dur:${f.dur}s;--size:${f.size}px;--drift:${f.drift}px`}
+        />
+      ))
+    }
+  </div>
+</div>
+
+<style>
+  .scene {
+    --mx: 0;
+    --my: 0;
+    --sy: 0;
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  svg {
+    position: absolute;
+    inset: -40px -40px 0;
+    width: calc(100% + 80px);
+    height: calc(100% + 40px);
+  }
+  .layer {
+    transform: translate3d(
+      calc(var(--mx) * var(--d) * -28px),
+      calc(var(--sy) * var(--d) * 0.35px + var(--my) * var(--d) * -14px),
+      0
+    );
+    will-change: transform;
+  }
+
+  .star {
+    fill: #fff6dc;
+    animation: twinkle 3.6s ease-in-out infinite;
+    animation-delay: calc(var(--tw) * -1);
+  }
+  @keyframes twinkle {
+    0%,
+    100% {
+      opacity: 0.25;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+
+  .bob {
+    animation: bob var(--bob, 7s) ease-in-out infinite;
+    animation-delay: var(--bob-delay, 0s);
+  }
+  @keyframes bob {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-14px);
+    }
+  }
+
+  .cloud {
+    animation: drift linear infinite alternate;
+  }
+  .cloud--slow {
+    animation-duration: 60s;
+  }
+  .cloud--mid {
+    animation-duration: 45s;
+  }
+  .cloud--fast {
+    animation-duration: 30s;
+  }
+  @keyframes drift {
+    from {
+      transform: translateX(-60px);
+    }
+    to {
+      transform: translateX(80px);
+    }
+  }
+
+  .fireflies span {
+    position: absolute;
+    bottom: -10px;
+    width: var(--size);
+    height: var(--size);
+    border-radius: 50%;
+    background: #ffe08a;
+    box-shadow: 0 0 10px 3px rgb(255 200 90 / 0.65);
+    opacity: 0;
+    animation: rise var(--dur) linear infinite;
+    animation-delay: calc(var(--delay) * -1);
+  }
+  @keyframes rise {
+    0% {
+      transform: translate(0, 0);
+      opacity: 0;
+    }
+    15% {
+      opacity: 0.9;
+    }
+    85% {
+      opacity: 0.6;
+    }
+    100% {
+      transform: translate(var(--drift), -70vh);
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .fireflies {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  const scene = document.querySelector<HTMLElement>('[data-parallax]');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+
+  if (scene && !reduce.matches) {
+    let mx = 0,
+      my = 0,
+      tx = 0,
+      ty = 0,
+      sy = 0,
+      raf = 0,
+      visible = true;
+
+    const tick = () => {
+      // Suavizado: la escena "persigue" al mouse en vez de saltar
+      tx += (mx - tx) * 0.08;
+      ty += (my - ty) * 0.08;
+      scene.style.setProperty('--mx', tx.toFixed(4));
+      scene.style.setProperty('--my', ty.toFixed(4));
+      scene.style.setProperty('--sy', String(sy));
+      raf = Math.abs(mx - tx) > 0.001 || Math.abs(my - ty) > 0.001 ? requestAnimationFrame(tick) : 0;
+    };
+    const kick = () => {
+      if (!raf && visible) raf = requestAnimationFrame(tick);
+    };
+
+    if (matchMedia('(pointer: fine)').matches) {
+      window.addEventListener(
+        'pointermove',
+        (e) => {
+          mx = (e.clientX / innerWidth) * 2 - 1;
+          my = (e.clientY / innerHeight) * 2 - 1;
+          kick();
+        },
+        { passive: true },
+      );
+    }
+    window.addEventListener(
+      'scroll',
+      () => {
+        sy = Math.min(scrollY, 900);
+        kick();
+      },
+      { passive: true },
+    );
+    new IntersectionObserver(([e]) => {
+      visible = e.isIntersecting;
+      // Pausa las animaciones CSS cuando el héroe no se ve (ahorra batería)
+      scene.classList.toggle('is-paused', !visible);
+    }).observe(scene);
+  }
+</script>
+
+<style is:global>
+  [data-parallax].is-paused * {
+    animation-play-state: paused !important;
+  }
+</style>

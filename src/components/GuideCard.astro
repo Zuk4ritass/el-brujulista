@@ -10,7 +10,7 @@ const { verification } = data;
 ---
 
 <li
-  class="card"
+  class="card panel reveal"
   data-guide
   data-category={data.category}
   data-level-min={data.levelMin ?? ''}
@@ -21,75 +21,80 @@ const { verification } = data;
       <VerificationBadge status={verification.status} />
       {data.example && <span class="tag tag--example">Ejemplo</span>}
     </div>
-    <h2 class="card__title">
+    <h3 class="card__title">
       <a href={`/guias/${data.slug}/`}>{data.title}</a>
-    </h2>
+    </h3>
     <p class="card__summary">{data.summary}</p>
     <p class="card__meta">
-      <span>{CATEGORY_LABELS[data.category]}</span>
-      <span aria-hidden="true">·</span>
-      <span>{levelLabel(data)}</span>
-      <span aria-hidden="true">·</span>
-      <span>{data.steps.length} {data.steps.length === 1 ? 'paso' : 'pasos'}</span>
+      <span class="chip">{CATEGORY_LABELS[data.category]}</span>
+      <span class="chip">{levelLabel(data)}</span>
+      <span class="chip">{data.steps.length} {data.steps.length === 1 ? 'paso' : 'pasos'}</span>
     </p>
   </article>
 </li>
 
 <style>
   .card {
-    position: relative;
     list-style: none;
-    padding: 1rem 1.1rem;
-    border: 1px solid var(--border, #4a3b2c);
-    border-radius: 10px;
-    background: var(--surface, #241b14);
+    transition:
+      translate 0.2s ease,
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+  .card:hover {
+    translate: 0 -4px;
+    border-color: var(--border-strong);
   }
   .card:focus-within {
-    outline: 3px solid var(--focus, #ffcf5a);
-    outline-offset: 2px;
+    outline: 3px solid var(--focus);
+    outline-offset: 3px;
   }
   .card__tags {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
-    margin-bottom: 0.6rem;
+    margin-bottom: 0.7rem;
   }
   .card__title {
     margin: 0 0 0.35rem;
-    font-size: 1.2rem;
+    font-size: 1.4rem;
+    text-transform: uppercase;
   }
   .card__title a {
-    color: inherit;
+    color: var(--text);
     text-decoration: none;
+  }
+  .card:hover .card__title a {
+    color: var(--gold);
   }
   /* Toda la tarjeta es clicable, pero el enlace sigue siendo uno solo para lectores de pantalla. */
   .card__title a::after {
     content: '';
     position: absolute;
     inset: 0;
+    border-radius: inherit;
   }
   .card__title a:focus {
     outline: none;
   }
   .card__summary {
-    margin: 0 0 0.6rem;
+    margin: 0 0 0.8rem;
+    color: var(--text-soft);
   }
   .card__meta {
     display: flex;
     flex-wrap: wrap;
     gap: 0.4rem;
     margin: 0;
-    font-size: 0.9rem;
-    opacity: 0.85;
   }
   .tag--example {
     padding: 0.2em 0.6em;
     border-radius: 4px;
-    font-size: 0.8rem;
-    font-weight: 800;
-    letter-spacing: 0.06em;
+    font: 600 0.8rem/1.4 var(--font-display);
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     background: #3b3f8f;
     color: #eef0ff;
+    border: 2px solid #23265e;
   }
 </style>

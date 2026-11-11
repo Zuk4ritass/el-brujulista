@@ -11,29 +11,36 @@ const categories = [...new Set(guias.map((g) => g.data.category))] as Category[]
 ---
 
 <BaseLayout title="Guías" description="Listado de guías paso a paso para Trefus, filtrables por nivel y categoría.">
-  <h1>Guías</h1>
-  <p>
-    Guías escritas para <strong>Trefus</strong>. Revisa el badge de cada una: solo las marcadas
-    como <em>Verificado</em> se comprobaron jugando en el servidor.
-  </p>
+  <div class="container page">
+    <h1 class="page-title">Guías</h1>
+    <p class="page-lead">
+      Guías escritas para <strong>Trefus</strong>. Revisa el sello de cada una: solo las marcadas
+      como <em>Verificado</em> se comprobaron jugando en el servidor.
+    </p>
 
-  <GuideFilters categories={categories} />
-  <p class="count" id="conteo" role="status" aria-live="polite">{guias.length} guías</p>
+    <div class="panel filters-panel">
+      <GuideFilters categories={categories} />
+      <p class="count" id="conteo" role="status" aria-live="polite">{guias.length} guías</p>
+    </div>
 
-  <ul class="grid" id="lista-guias">
-    {guias.map((g) => <GuideCard guia={g} />)}
-  </ul>
-  <p class="empty" id="sin-resultados" hidden>
-    No hay guías con esos filtros todavía. Prueba otro rango de nivel o categoría.
-  </p>
+    <ul class="grid" id="lista-guias">
+      {guias.map((g) => <GuideCard guia={g} />)}
+    </ul>
+    <p class="empty panel" id="sin-resultados" hidden>
+      No hay guías con esos filtros todavía. Prueba otro rango de nivel o categoría.
+    </p>
+  </div>
 </BaseLayout>
 
 <style>
   .grid {
     display: grid;
-    gap: 1rem;
+    gap: 1.1rem;
     padding: 0;
-    margin: 0.5rem 0 0;
+    margin: 1.5rem 0 0;
+  }
+  .filters-panel {
+    padding-block: 0.4rem 0.6rem;
   }
   @media (min-width: 720px) {
     .grid {

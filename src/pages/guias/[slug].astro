@@ -19,6 +19,7 @@ const hasBody = (guia.body ?? '').trim().length > 0;
 ---
 
 <BaseLayout title={data.title} description={data.summary}>
+  <div class="container page guide">
   <p class="back"><a href="/guias/">← Volver a las guías</a></p>
 
   <header class="guide-head">
@@ -29,13 +30,12 @@ const hasBody = (guia.body ?? '').trim().length > 0;
         </p>
       )
     }
-    <h1>{data.title}</h1>
+    <h1 class="page-title">{data.title}</h1>
     <p class="summary"><GameText text={data.summary} /></p>
     <div class="meta">
       <VerificationBadge {...data.verification} detailed />
-      <span>{CATEGORY_LABELS[data.category]}</span>
-      <span aria-hidden="true">·</span>
-      <span><GameText text={levelLabel(data)} /></span>
+      <span class="chip">{CATEGORY_LABELS[data.category]}</span>
+      <span class="chip"><GameText text={levelLabel(data)} /></span>
     </div>
     {
       data.verification.status !== 'verificado' && (
@@ -49,7 +49,7 @@ const hasBody = (guia.body ?? '').trim().length > 0;
   </header>
 
   <StepChecklist slug={data.slug} steps={data.steps}>
-  <section aria-labelledby="req-titulo">
+  <section class="panel" aria-labelledby="req-titulo">
     <h2 id="req-titulo">Requisitos</h2>
     {
       data.requirements.length === 0 ? (
@@ -68,7 +68,7 @@ const hasBody = (guia.body ?? '').trim().length > 0;
 
   {
     hasBody && (
-      <section class="prose" aria-labelledby="ctx-titulo">
+      <section class="panel prose" aria-labelledby="ctx-titulo">
         <h2 id="ctx-titulo">Contexto</h2>
         <Content />
       </section>
@@ -77,15 +77,22 @@ const hasBody = (guia.body ?? '').trim().length > 0;
   </StepChecklist>
 
   <KnownBugs bugs={data.knownBugs} />
+  </div>
 </BaseLayout>
 
 <style>
   .back {
     margin: 0 0 0.5rem;
   }
-  .guide-head h1 {
-    margin: 0.25rem 0 0.4rem;
-    line-height: 1.15;
+  .guide {
+    max-width: 820px;
+  }
+  .panel h2 {
+    margin-top: 0;
+  }
+  .panel ul {
+    margin: 0;
+    padding-left: 1.2rem;
   }
   .summary {
     margin: 0 0 0.75rem;
@@ -103,11 +110,12 @@ const hasBody = (guia.body ?? '').trim().length > 0;
     border-radius: 8px;
     background: #3b3f8f;
     color: #eef0ff;
+    border: 2px solid #23265e;
   }
   .unverified-note {
     margin: 0.75rem 0 0;
     font-size: 0.95rem;
-    color: #ffd27a;
+    color: var(--warn);
   }
   section {
     margin-top: 1.75rem;
