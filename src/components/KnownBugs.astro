@@ -1,0 +1,57 @@
+---
+import GameText from './GameText.astro';
+
+interface Props {
+  bugs: { description: string; workaround?: string }[];
+}
+const { bugs } = Astro.props;
+---
+
+<section class="bugs" aria-labelledby="bugs-titulo">
+  <h2 id="bugs-titulo">Bugs conocidos y cómo evitarlos</h2>
+  {
+    bugs.length === 0 ? (
+      <p>No hay bugs reportados para esta guía. Si encuentras uno, <a href="/contribuir/">avísanos</a>.</p>
+    ) : (
+      <ul>
+        {bugs.map((b) => (
+          <li class="bug">
+            <p class="bug__desc">
+              <span class="bug__label">Bug:</span> <GameText text={b.description} />
+            </p>
+            {b.workaround && (
+              <p class="bug__fix">
+                <span class="bug__label">Cómo evitarlo:</span> <GameText text={b.workaround} />
+              </p>
+            )}
+          </li>
+        ))}
+      </ul>
+    )
+  }
+</section>
+
+<style>
+  .bugs ul {
+    display: grid;
+    gap: 0.75rem;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+  .bug {
+    padding: 0.8rem 1rem;
+    border-left: 4px solid #ff8a80;
+    border-radius: 6px;
+    background: var(--surface, #241b14);
+  }
+  .bug p {
+    margin: 0;
+  }
+  .bug__fix {
+    margin-top: 0.4rem !important;
+  }
+  .bug__label {
+    font-weight: 700;
+  }
+</style>

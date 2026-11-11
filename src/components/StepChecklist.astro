@@ -1,0 +1,342 @@
+---
+// Checklist de pasos con progreso guardado en el navegador.
+// El HTML funciona sin JS (se ven los pasos); el script añade guardado, barra, "continuar" y reinicio.
+import GameText from './GameText.astro';
+import { stepId } from '../lib/slugify';
+
+interface Step {
+  id?: string;
+  title: string;
+  description: string;
+  map?: string;
+  coords?: string;
+  reward?: string;
+  notes?: string;
+}
+interface Props {
+  slug: string;
+  steps: Step[];
+}
+const { slug, steps } = Astro.props;
+const total = steps.length;
+---
+
+<guide-checklist data-slug={slug}>
+  <section class="progress" aria-labelledby="progreso-titulo">
+    <h2 id="progreso-titulo" class="visually-hidden">Tu progreso</h2>
+    <div class="progress__row">
+      <p class="progress__text" data-progress-text aria-live="polite">0 de {total} pasos</p>
+      <a class="progress__continue" href="#" data-continue hidden>Continuar donde quedaste ↓</a>
+    </div>
+    <progress data-progress-bar max={total} value="0" aria-labelledby="progreso-titulo"></progress>
+    <p class="progress__warn" data-storage-warning hidden>
+      Tu navegador no permite guardar datos: el progreso se perderá al cerrar esta pestaña.
+    </p>
+    <noscript><p class="progress__warn">Activa JavaScript para guardar tu progreso.</p></noscript>
+  </section>
+
+  <!-- Requisitos, contexto, etc. van aquí: debajo de la barra y antes de los pasos. -->
+  <slot />
+
+  <h2>Pasos</h2>
+  <ol class="steps">
+    {
+      steps.map((step, i) => {
+        const id = stepId(step);
+        const domId = `paso-${id}`;
+        return (
+          <li class="step" id={domId} data-step={id}>
+            <div class="step__head">
+              <input type="checkbox" id={`chk-${id}`} class="step__check" aria-describedby={`${domId}-desc`} />
+              <label for={`chk-${id}`} class="step__title">
+                <span class="step__num">{i + 1}.</span> <GameText text={step.title} />
+              </label>
+            </div>
+            <div class="step__body">
+              <p id={`${domId}-desc`}>
+                <GameText text={step.description} />
+              </p>
+              {(step.map || step.coords || step.reward) && (
+                <dl class="step__facts">
+                  {step.map && (
+                    <div>
+                      <dt>Mapa</dt>
+                      <dd><GameText text={step.map} /></dd>
+                    </div>
+                  )}
+                  {step.coords && (
+                    <div>
+                      <dt>Coordenadas</dt>
+                      <dd><GameText text={step.coords} /></dd>
+                    </div>
+                  )}
+                  {step.reward && (
+                    <div>
+                      <dt>Recompensa</dt>
+                      <dd><GameText text={step.reward} /></dd>
+                    </div>
+                  )}
+                </dl>
+              )}
+              {step.notes && (
+                <p class="step__notes">
+                  <strong>Nota:</strong> <GameText text={step.notes} />
+                </p>
+              )}
+            </div>
+          </li>
+        );
+      })
+    }
+  </ol>
+
+  <div class="actions">
+    <button type="button" class="reset" data-reset>Reiniciar progreso de esta guía</button>
+  </div>
+</guide-checklist>
+
+<style>
+  guide-checklist {
+    display: block;
+  }
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* Barra de progreso: fija arriba mientras se lee, para ver el avance de un vistazo. */
+  .progress {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    padding: 0.6rem 0 0.7rem;
+    background: var(--bg, #17110c);
+    border-bottom: 1px solid var(--border, #6b5640);
+  }
+  .progress__row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .progress__text {
+    margin: 0;
+    font-weight: 700;
+  }
+  .progress__continue {
+    font-weight: 700;
+  }
+  progress {
+    display: block;
+    width: 100%;
+    height: 12px;
+    margin-top: 0.4rem;
+    appearance: none;
+    border: 1px solid var(--border, #6b5640);
+    border-radius: 999px;
+    background: var(--surface, #241b14);
+    overflow: hidden;
+  }
+  progress::-webkit-progress-bar {
+    background: var(--surface, #241b14);
+  }
+  progress::-webkit-progress-value {
+    background: #6fbf73;
+    transition: width 0.25s ease;
+  }
+  progress::-moz-progress-bar {
+    background: #6fbf73;
+  }
+  .progress__warn {
+    margin: 0.5rem 0 0;
+    font-size: 0.9rem;
+    color: #ffd27a;
+  }
+
+  .steps {
+    display: grid;
+    gap: 0.75rem;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    counter-reset: none;
+  }
+  .step {
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--border, #6b5640);
+    border-radius: 10px;
+    background: var(--surface, #241b14);
+    scroll-margin-top: 6rem;
+    transition: opacity 0.2s ease, border-color 0.2s ease;
+  }
+  .step__head {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  .step__check {
+    flex: none;
+    width: 1.6rem;
+    height: 1.6rem;
+    margin: 0.1rem 0 0;
+    accent-color: #6fbf73;
+    cursor: pointer;
+  }
+  .step__title {
+    font-weight: 700;
+    font-size: 1.1rem;
+    cursor: pointer;
+  }
+  .step__body {
+    padding-left: 2.35rem;
+  }
+  .step__body p {
+    margin: 0.5rem 0 0;
+  }
+  .step__facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.25rem;
+    margin: 0.6rem 0 0;
+  }
+  .step__facts dt {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    opacity: 0.8;
+  }
+  .step__facts dd {
+    margin: 0;
+    font-weight: 600;
+  }
+
+  /* Paso completado: atenuado, título tachado y borde verde. Se distingue sin depender del color. */
+  .step.is-done {
+    opacity: 0.6;
+    border-color: #3f7a43;
+  }
+  .step.is-done .step__title {
+    text-decoration: line-through;
+    text-decoration-thickness: 2px;
+  }
+  /* Siguiente paso pendiente: resaltado para retomar rápido. */
+  .step.is-next {
+    border: 2px solid var(--focus, #ffcf5a);
+    box-shadow: 0 0 0 4px rgb(255 207 90 / 0.15);
+  }
+  .step.is-next .step__title::after {
+    content: ' — siguiente';
+    font-weight: 400;
+    font-size: 0.85rem;
+    color: var(--focus, #ffcf5a);
+  }
+
+  .actions {
+    margin-top: 1rem;
+  }
+  .reset {
+    min-height: 44px;
+    padding: 0.5rem 1rem;
+    font: inherit;
+    color: inherit;
+    background: transparent;
+    border: 1px solid #ff8a80;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .reset:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .step,
+    progress::-webkit-progress-value {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  import { isPersistent, loadProgress, saveProgress, resetProgress, progressKey } from '../lib/progress';
+
+  class GuideChecklist extends HTMLElement {
+    private slug = '';
+    private done = new Set<string>();
+    private steps: HTMLLIElement[] = [];
+
+    connectedCallback() {
+      this.slug = this.dataset.slug ?? '';
+      this.steps = [...this.querySelectorAll<HTMLLIElement>('[data-step]')];
+      // Ignora ids guardados de pasos que ya no existen (si la guía cambió).
+      const valid = new Set(this.steps.map((s) => s.dataset.step!));
+      this.done = new Set([...loadProgress(this.slug)].filter((id) => valid.has(id)));
+
+      this.querySelector<HTMLElement>('[data-storage-warning]')!.hidden = isPersistent;
+
+      for (const step of this.steps) {
+        const chk = step.querySelector<HTMLInputElement>('input[type="checkbox"]')!;
+        chk.addEventListener('change', () => {
+          const id = step.dataset.step!;
+          if (chk.checked) this.done.add(id);
+          else this.done.delete(id);
+          saveProgress(this.slug, this.done);
+          this.render();
+        });
+      }
+
+      this.querySelector('[data-reset]')!.addEventListener('click', () => {
+        if (!confirm('¿Reiniciar el progreso de esta guía? Se desmarcarán todos los pasos.')) return;
+        this.done.clear();
+        resetProgress(this.slug);
+        this.render();
+        this.steps[0]?.querySelector('input')?.focus();
+      });
+
+      this.querySelector('[data-continue]')!.addEventListener('click', (e) => {
+        e.preventDefault();
+        const next = this.steps.find((s) => !this.done.has(s.dataset.step!));
+        if (!next) return;
+        const smooth = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+        next.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
+        next.querySelector('input')?.focus({ preventScroll: true });
+      });
+
+      // Sincroniza si la misma guía está abierta en otra pestaña.
+      window.addEventListener('storage', (e) => {
+        if (e.key !== progressKey(this.slug)) return;
+        this.done = new Set([...loadProgress(this.slug)].filter((id) => valid.has(id)));
+        this.render();
+      });
+
+      this.render();
+    }
+
+    private render() {
+      const total = this.steps.length;
+      const count = this.done.size;
+      const next = this.steps.find((s) => !this.done.has(s.dataset.step!));
+
+      for (const step of this.steps) {
+        const isDone = this.done.has(step.dataset.step!);
+        step.querySelector<HTMLInputElement>('input')!.checked = isDone;
+        step.classList.toggle('is-done', isDone);
+        step.classList.toggle('is-next', step === next && count > 0);
+      }
+
+      this.querySelector<HTMLProgressElement>('[data-progress-bar]')!.value = count;
+      this.querySelector<HTMLElement>('[data-progress-text]')!.textContent =
+        count === total ? `¡Guía completada! ${total} de ${total} pasos` : `${count} de ${total} pasos`;
+      // "Continuar" solo tiene sentido si ya empezaste y no has terminado.
+      this.querySelector<HTMLElement>('[data-continue]')!.hidden = !(count > 0 && count < total);
+      this.querySelector<HTMLButtonElement>('[data-reset]')!.disabled = count === 0;
+    }
+  }
+
+  customElements.define('guide-checklist', GuideChecklist);
+</script>

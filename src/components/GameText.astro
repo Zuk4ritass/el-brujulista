@@ -1,0 +1,22 @@
+---
+// Muestra un texto de juego resaltando cada "POR COMPLETAR", para que se note que falta el dato.
+interface Props {
+  text: string;
+}
+const parts = Astro.props.text.split(/(POR COMPLETAR)/);
+---
+
+{parts.map((p) => (p === 'POR COMPLETAR' ? <span class="pending">POR COMPLETAR</span> : p))}
+
+<style>
+  .pending {
+    padding: 0 0.3em;
+    border-radius: 3px;
+    border: 1px dashed currentColor;
+    font-size: 0.85em;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    opacity: 0.8;
+    white-space: nowrap;
+  }
+</style>
