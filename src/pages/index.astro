@@ -1,0 +1,22 @@
+---
+// Home provisional (etapa a): solo comprueba que la colección carga y valida.
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const guias = await getCollection('guias');
+---
+
+<BaseLayout title="Inicio">
+  <h1>Guías Trefus</h1>
+  <p>Guías cargadas: {guias.length}</p>
+  <ul>
+    {
+      guias.map((g) => (
+        <li>
+          {g.data.title} · {g.data.category} · {g.data.verification.status}
+          {g.data.example && ' · EJEMPLO'} · {g.data.steps.length} pasos
+        </li>
+      ))
+    }
+  </ul>
+</BaseLayout>

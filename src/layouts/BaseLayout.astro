@@ -1,0 +1,39 @@
+---
+interface Props {
+  title: string;
+  description?: string;
+}
+const { title, description = 'Guías paso a paso no oficiales para el servidor Trefus.' } = Astro.props;
+const fullTitle = title === 'Inicio' ? 'Guías Trefus' : `${title} · Guías Trefus`;
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <meta name="color-scheme" content="dark" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{fullTitle}</title>
+  </head>
+  <body>
+    <a class="skip" href="#contenido">Saltar al contenido</a>
+    <header>
+      <nav aria-label="Principal">
+        <a href="/">Inicio</a>
+        <a href="/guias/">Guías</a>
+        <a href="/contribuir/">Contribuir</a>
+      </nav>
+    </header>
+    <main id="contenido">
+      <slot />
+    </main>
+    <footer>
+      <p>
+        Sitio de fans <strong>no oficial</strong>. No está afiliado a Ankama ni a Trefus. Dofus es una
+        marca de Ankama. El contenido puede diferir de Dofus 2.x.
+      </p>
+    </footer>
+  </body>
+</html>
