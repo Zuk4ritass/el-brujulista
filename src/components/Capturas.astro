@@ -12,7 +12,10 @@ interface Props {
 }
 const { files, alt } = Astro.props;
 const dir = join(process.cwd(), 'public', 'privado', 'capturas');
-const items = files.map((f) => ({ file: f, ok: existsSync(join(dir, f)), src: `/privado/capturas/${f}` }));
+// En un build de producción no se muestran: las capturas no se publican (ver astro.config.mjs).
+const items = import.meta.env.DEV
+  ? files.map((f) => ({ file: f, ok: existsSync(join(dir, f)), src: `/privado/capturas/${f}` }))
+  : [];
 ---
 
 {
