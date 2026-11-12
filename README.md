@@ -6,7 +6,7 @@ Sitio de guías paso a paso para **Trefus**, un servidor privado de Dofus basado
 
 | Ruta | Qué es |
 | --- | --- |
-| `/` | Portada: guía destacada, buscador, fila "Continúa donde quedaste" y una fila por categoría. |
+| `/` | Portada: buscador al centro, chips de intereses (tipo y nivel), fila "Continúa donde quedaste", "Destacadas" (`featured: true`) y una fila por categoría. |
 | `/guias/` | Catálogo completo en pósters, con buscador y filtros por nivel y categoría. Acepta `?q=`, `?nivel=` y `?categoria=`. |
 | `/guias/<slug>/` | La guía: progreso, "Necesitas:", pasos y bugs conocidos. El contexto extra queda plegado. |
 | `/sugerir/` | La gente propone ideas de guías por Discord. `/contribuir/` redirige aquí. |
@@ -76,7 +76,7 @@ levelMin: 50                  # opcional mientras no lo sepas
 levelMax: 80                  # opcional
 category: quest               # quest | dungeon | ruta | tip
 tags: [FG, Frigost]           # apodos y abreviaturas para el buscador
-featured: false               # true = aparece en grande en la portada
+featured: false               # true = aparece en la fila "Destacadas" de la portada
 # cover: ./portadas/mi-guia.jpg  # opcional; sin esto se genera un póster automático
 requirements:
   - Lo que se necesita antes de empezar

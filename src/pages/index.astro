@@ -5,16 +5,10 @@ import HeroScene from '../components/HeroScene.astro';
 import GuidePoster from '../components/GuidePoster.astro';
 import PosterRow from '../components/PosterRow.astro';
 import SearchBox from '../components/SearchBox.astro';
-import VerificationBadge from '../components/VerificationBadge.astro';
-import { CATEGORY_LABELS, levelLabel, sortGuides, type Category } from '../lib/guides';
-import { stepId } from '../lib/slugify';
+import { LEVEL_RANGES, sortGuides, type Category } from '../lib/guides';
 
 const guias = sortGuides(await getCollection('guias'));
-const featured = guias.find((g) => g.data.featured) ?? guias.find((g) => !g.data.example) ?? guias[0];
-const f = featured.data;
-const hasLevel = !levelLabel(f).includes('POR COMPLETAR');
-const hasSummary = !f.summary.includes('POR COMPLETAR');
-
+const featuredList = guias.filter((g) => g.data.featured);
 const ROW_TITLES: Record<Category, string> = {
   quest: 'Quests',
   dungeon: 'Dungeons',
@@ -24,46 +18,51 @@ const ROW_TITLES: Record<Category, string> = {
 const byCategory = (Object.keys(ROW_TITLES) as Category[])
   .map((c) => ({ c, items: guias.filter((g) => g.data.category === c) }))
   .filter((r) => r.items.length > 0);
+const categories = byCategory.map((r) => r.c);
+const ICONS: Record<Category, string> = { quest: '📜', dungeon: '🗝️', ruta: '🧭', tip: '💡' };
 ---
 
 <BaseLayout title="Inicio">
-  <!-- Guía destacada, en grande -->
-  <section class="billboard" aria-labelledby="destacada-titulo">
+  <!-- Héroe: el buscador es lo principal -->
+  <section class="hero" aria-labelledby="hero-title">
     <HeroScene />
-    <div class="billboard__scrim" aria-hidden="true"></div>
-    <div class="container billboard__content">
-      <p class="ribbon billboard__eyebrow">Guía destacada</p>
-      <h1 id="destacada-titulo" class="billboard__title">{f.title}</h1>
-      <div class="billboard__meta">
-        <VerificationBadge status={f.verification.status} />
-        <span class="chip">{CATEGORY_LABELS[f.category]}</span>
-        {hasLevel && <span class="chip">{levelLabel(f)}</span>}
-        <span class="chip">{f.steps.length} pasos</span>
+    <div class="hero__scrim" aria-hidden="true"></div>
+    <div class="container hero__content">
+      <p class="ribbon hero__eyebrow">Guías de Trefus</p>
+      <h1 id="hero-title" class="hero__title">¿Qué quieres hacer hoy?</h1>
+      <div class="hero__search">
+        <SearchBox id="buscar-inicio" size="big" />
       </div>
-      {hasSummary && <p class="billboard__summary">{f.summary}</p>}
-      <div class="billboard__actions">
-        <a
-          class="btn"
-          href={`/guias/${f.slug}/`}
-          data-featured-cta
-          data-slug={f.slug}
-          data-step-ids={f.steps.map(stepId).join(',')}
-        >
-          <span aria-hidden="true">▶</span> <span data-cta-label>Empezar guía</span>
-        </a>
-        <a class="btn btn--ghost" href="/guias/">Ver todas</a>
+
+      <!-- Intereses: filtran al instante, solos o junto con la búsqueda -->
+      <div class="interests" data-interests>
+        <div class="interests__group" role="group" aria-label="Tipo de guía">
+          {
+            categories.map((c) => (
+              <button type="button" class="interest" data-filter="cat" data-value={c} aria-pressed="false">
+                <span aria-hidden="true">{ICONS[c]}</span> {ROW_TITLES[c]}
+              </button>
+            ))
+          }
+        </div>
+        <div class="interests__group" role="group" aria-label="Rango de nivel">
+          {
+            LEVEL_RANGES.map((r) => (
+              <button type="button" class="interest interest--level" data-filter="lvl" data-value={r.value} aria-pressed="false">
+                Nv. {r.min}–{r.max}
+              </button>
+            ))
+          }
+        </div>
       </div>
+
+      <p class="hero__note">
+        Guías no oficiales para el servidor <strong>Trefus</strong>. El contenido puede diferir de Dofus 2.x.
+      </p>
     </div>
   </section>
 
   <div class="container">
-    <div class="search-wrap">
-      <SearchBox id="buscar-inicio" size="big" />
-      <p class="search-note">
-        Guías no oficiales para el servidor <strong>Trefus</strong>. El contenido puede diferir de Dofus 2.x.
-      </p>
-    </div>
-
     <!-- Resultados de búsqueda (reemplazan las filas mientras hay texto en el buscador) -->
     <section class="results" aria-labelledby="resultados-titulo" data-results hidden>
       <h2 id="resultados-titulo" class="results__title" data-results-title aria-live="polite">Resultados</h2>
@@ -71,7 +70,7 @@ const byCategory = (Object.keys(ROW_TITLES) as Category[])
         {guias.map((g) => <GuidePoster guia={g} />)}
       </ul>
       <div class="results__empty panel" data-results-empty hidden>
-        <p><strong>No encontramos guías para "<span data-results-query></span>".</strong></p>
+        <p><strong>No encontramos guías con eso todavía.</strong></p>
         <p>¿Te gustaría que exista? <a href="/sugerir/">Sugiere esta guía</a> y la tendremos en cuenta.</p>
       </div>
     </section>
@@ -80,6 +79,16 @@ const byCategory = (Object.keys(ROW_TITLES) as Category[])
       <PosterRow title="Continúa donde quedaste" id="fila-continuar" hidden>
         {guias.map((g) => <GuidePoster guia={g} size="row" />)}
       </PosterRow>
+
+      {
+        featuredList.length > 0 && (
+          <PosterRow title="Destacadas" id="fila-destacadas">
+            {featuredList.map((g) => (
+              <GuidePoster guia={g} size="row" eager />
+            ))}
+          </PosterRow>
+        )
+      }
 
       {
         byCategory.map(({ c, items }, i) => (
@@ -102,34 +111,37 @@ const byCategory = (Object.keys(ROW_TITLES) as Category[])
 </BaseLayout>
 
 <style>
-  /* ---------- Destacada ---------- */
-  .billboard {
+  /* ---------- Héroe con buscador ---------- */
+  .hero {
     position: relative;
     display: grid;
-    align-items: end;
-    min-height: clamp(460px, 72vh, 640px);
+    align-items: center;
+    min-height: clamp(440px, 66vh, 600px);
     margin-top: -3px;
     overflow: hidden;
     isolation: isolate;
   }
-  .billboard__scrim {
+  .hero__scrim {
     position: absolute;
     inset: 0;
     z-index: 1;
     background:
-      linear-gradient(90deg, rgb(10 8 20 / 0.75) 0%, rgb(10 8 20 / 0.35) 50%, transparent 75%),
-      linear-gradient(0deg, var(--bg) 0%, transparent 35%);
+      radial-gradient(ellipse 70% 60% at 50% 45%, rgb(10 8 20 / 0.6), transparent 75%),
+      linear-gradient(0deg, var(--bg) 0%, transparent 30%);
     pointer-events: none;
   }
-  .billboard__content {
+  .hero__content {
     position: relative;
     z-index: 2;
-    padding-block: 3rem 4.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-block: 3rem 3.5rem;
+    text-align: center;
   }
-  .billboard__eyebrow {
+  .hero__eyebrow {
     font-size: 0.85rem;
     animation: unfurl 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-    transform-origin: left center;
   }
   @keyframes unfurl {
     from {
@@ -137,37 +149,25 @@ const byCategory = (Object.keys(ROW_TITLES) as Category[])
       opacity: 0;
     }
   }
-  .billboard__title {
-    max-width: 14ch;
-    margin: 0.8rem 0 0.9rem;
-    font-size: clamp(3rem, 12vw, 6.5rem);
-    line-height: 0.92;
+  .hero__title {
+    margin: 0.8rem 0 1.4rem;
+    font-size: clamp(2.2rem, 7vw, 4rem);
+    line-height: 1;
     color: #fff8ec;
-    text-shadow: 0 5px 0 rgb(0 0 0 / 0.45), 0 12px 30px rgb(0 0 0 / 0.55);
+    text-shadow: 0 4px 0 rgb(0 0 0 / 0.45), 0 10px 30px rgb(0 0 0 / 0.55);
     animation: rise-in 0.8s 0.15s cubic-bezier(0.2, 0.8, 0.2, 1) both;
   }
-  .billboard__meta {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.45rem;
-    animation: rise-in 0.7s 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  .hero__search {
+    width: 100%;
+    max-width: 680px;
+    animation: rise-in 0.7s 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both;
   }
-  .billboard__meta .chip {
-    background: rgb(0 0 0 / 0.5);
-  }
-  .billboard__summary {
-    max-width: 46ch;
-    margin: 1rem 0 0;
-    font-size: 1.1rem;
-    text-shadow: 0 2px 8px rgb(0 0 0 / 0.8);
-  }
-  .billboard__actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.8rem;
-    margin-top: 1.5rem;
-    animation: rise-in 0.7s 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  .hero__note {
+    max-width: 52ch;
+    margin: 1.25rem 0 0;
+    font-size: 0.85rem;
+    color: #e6d8bd;
+    text-shadow: 0 2px 6px rgb(0 0 0 / 0.8);
   }
   @keyframes rise-in {
     from {
@@ -176,23 +176,54 @@ const byCategory = (Object.keys(ROW_TITLES) as Category[])
     }
   }
 
-  /* ---------- Buscador ---------- */
-  .search-wrap {
-    position: relative;
-    z-index: 3;
-    max-width: 720px;
-    margin: -1.75rem auto 0;
+  /* ---------- Intereses ---------- */
+  .interests {
+    display: grid;
+    gap: 0.6rem;
+    justify-items: center;
+    margin-top: 1.1rem;
+    animation: rise-in 0.7s 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
   }
-  .search-note {
-    margin: 0.7rem 0 0;
-    text-align: center;
-    font-size: 0.88rem;
-    color: var(--text-soft);
+  .interests__group {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  .interest {
+    min-height: 40px;
+    padding: 0.35rem 1rem;
+    border: 2px solid rgb(243 230 204 / 0.35);
+    border-radius: 999px;
+    background: rgb(14 10 6 / 0.7);
+    color: var(--text);
+    font: 600 0.95rem/1 var(--font-body);
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+    transition:
+      background 0.15s ease,
+      border-color 0.15s ease,
+      transform 0.15s ease;
+  }
+  .interest:hover {
+    border-color: var(--gold);
+    transform: translateY(-2px);
+  }
+  .interest--level {
+    font-size: 0.85rem;
+    min-height: 34px;
+    padding-inline: 0.8rem;
+  }
+  .interest[aria-pressed='true'] {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: #2b1d12;
+    font-weight: 800;
   }
 
   /* ---------- Resultados ---------- */
   .results {
-    margin-top: 2rem;
+    margin-top: 1.5rem;
   }
   .results__title {
     margin: 0 0 1rem;
@@ -262,16 +293,7 @@ const byCategory = (Object.keys(ROW_TITLES) as Category[])
 <script>
   import { initSearch } from '../lib/search-ui';
   import { loadProgress } from '../lib/progress';
-
-  // Botón de la destacada: "Continuar" si ya empezaste
-  const cta = document.querySelector<HTMLAnchorElement>('[data-featured-cta]');
-  if (cta) {
-    const ids = (cta.dataset.stepIds ?? '').split(',');
-    const saved = loadProgress(cta.dataset.slug ?? '');
-    const done = ids.filter((id) => saved.has(id)).length;
-    if (done > 0 && done < ids.length) cta.querySelector('[data-cta-label]')!.textContent = `Continuar (${done}/${ids.length})`;
-    if (done === ids.length) cta.querySelector('[data-cta-label]')!.textContent = 'Repasar guía';
-  }
+  import { CATEGORY_LABELS, LEVEL_RANGES, type Category } from '../lib/guides';
 
   // Fila "Continúa donde quedaste": solo guías empezadas y no terminadas
   const contRow = document.querySelector<HTMLElement>('#fila-continuar');
@@ -288,32 +310,69 @@ const byCategory = (Object.keys(ROW_TITLES) as Category[])
     contRow.hidden = !any;
   }
 
-  // Búsqueda en vivo
+  // Búsqueda + intereses. Si hay texto o algún interés activo, los resultados reemplazan las filas.
   const results = document.querySelector<HTMLElement>('[data-results]')!;
   const grid = document.querySelector<HTMLElement>('[data-results-grid]')!;
   const rows = document.querySelector<HTMLElement>('[data-rows]')!;
   const title = document.querySelector<HTMLElement>('[data-results-title]')!;
   const empty = document.querySelector<HTMLElement>('[data-results-empty]')!;
-  const posters = new Map(
-    [...grid.querySelectorAll<HTMLElement>('[data-poster]')].map((p) => [p.dataset.slug!, p]),
-  );
+  const chips = [...document.querySelectorAll<HTMLButtonElement>('[data-interests] [data-filter]')];
+  const allPosters = [...grid.querySelectorAll<HTMLElement>('[data-poster]')];
+  const bySlug = new Map(allPosters.map((p) => [p.dataset.slug!, p]));
 
-  initSearch((slugs, query) => {
-    const searching = slugs !== null;
-    results.hidden = !searching;
-    rows.hidden = searching;
-    if (!slugs) return;
-    for (const p of posters.values()) p.hidden = true;
-    for (const slug of slugs) {
-      const p = posters.get(slug);
-      if (p) {
-        p.hidden = false;
-        grid.append(p); // reordena por relevancia
-      }
+  let matches: string[] | null = null;
+  let query = '';
+  const active = { cat: '', lvl: '' };
+
+  const render = () => {
+    const filtering = matches !== null || active.cat !== '' || active.lvl !== '';
+    results.hidden = !filtering;
+    rows.hidden = filtering;
+    if (!filtering) return;
+
+    const range = LEVEL_RANGES.find((r) => r.value === active.lvl);
+    const ordered = matches ? matches.map((s) => bySlug.get(s)).filter((p): p is HTMLElement => !!p) : allPosters;
+    const keep = new Set(ordered);
+    let visible = 0;
+    for (const p of allPosters) {
+      const min = p.dataset.levelMin ? Number(p.dataset.levelMin) : null;
+      const max = p.dataset.levelMax ? Number(p.dataset.levelMax) : null;
+      // Guías sin nivel conocido aparecen en cualquier rango (no las escondemos por falta de datos).
+      const lvlOk = !range || ((min ?? 1) <= range.max && (max ?? 200) >= range.min);
+      const catOk = !active.cat || p.dataset.category === active.cat;
+      const show = keep.has(p) && lvlOk && catOk;
+      p.hidden = !show;
+      if (show) visible++;
     }
+    for (const p of ordered) grid.append(p); // orden por relevancia
+
+    const parts = [
+      query && `"${query}"`,
+      active.cat && CATEGORY_LABELS[active.cat as Category],
+      range && `nivel ${range.min}–${range.max}`,
+    ].filter(Boolean);
     title.textContent =
-      slugs.length === 0 ? 'Sin resultados' : `${slugs.length} ${slugs.length === 1 ? 'resultado' : 'resultados'} para "${query}"`;
-    empty.hidden = slugs.length > 0;
-    empty.querySelector('[data-results-query]')!.textContent = query;
+      visible === 0
+        ? 'Sin resultados'
+        : `${visible} ${visible === 1 ? 'guía' : 'guías'}: ${parts.join(' · ')}`;
+    empty.hidden = visible > 0;
+  };
+
+  for (const chip of chips) {
+    chip.addEventListener('click', () => {
+      const key = chip.dataset.filter as 'cat' | 'lvl';
+      // Un interés por grupo: tocar el activo lo quita.
+      active[key] = active[key] === chip.dataset.value ? '' : chip.dataset.value!;
+      for (const c of chips) {
+        if (c.dataset.filter === key) c.setAttribute('aria-pressed', String(c.dataset.value === active[key]));
+      }
+      render();
+    });
+  }
+
+  initSearch((slugs, q) => {
+    matches = slugs;
+    query = q;
+    render();
   });
 </script>
