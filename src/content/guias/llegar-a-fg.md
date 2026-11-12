@@ -13,7 +13,8 @@ steps:
   - id: paso-1
     # Datos de Manuel (captura del juego): Portal Transportador en Astrub [4, -19]
     title: Ve al Portal Transportador
-    description: "Ve al Portal Transportador de la Ciudad de Astrub. Qué hacer en el portal: POR COMPLETAR"
+    # Parte 2 (captura de Manuel): en el diálogo del portal se elige "¡Quiero viajar a Frigost!"
+    description: "Ve al Portal Transportador de la Ciudad de Astrub, háblale y elige «¡Quiero viajar a Frigost!». Te lleva al barco que va a Frigost."
     map: Astrub (Ciudad de Astrub)
     coords: "4, -19"
     notes: POR COMPLETAR
