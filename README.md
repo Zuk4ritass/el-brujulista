@@ -1,4 +1,4 @@
-# Guías Trefus
+# El Brujulista
 
 Sitio de guías paso a paso para **Trefus**, un servidor privado de Dofus basado en la 1.29 con contenido de versiones más nuevas. Funciona como una plataforma de streaming: cada guía es un póster, hay un buscador principal y una fila "Continúa donde quedaste". Por dentro, cada guía es un checklist corto, y el progreso se guarda en el navegador del jugador.
 

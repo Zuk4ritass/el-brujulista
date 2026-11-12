@@ -1,7 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- Pergamino enrollado con un check: ícono propio del sitio -->
-  <rect x="10" y="10" width="44" height="44" rx="6" fill="#fffaf0" stroke="#2b1a0e" stroke-width="4"/>
-  <rect x="6" y="6" width="52" height="11" rx="5.5" fill="#f08a3c" stroke="#2b1a0e" stroke-width="4"/>
-  <rect x="6" y="47" width="52" height="11" rx="5.5" fill="#f08a3c" stroke="#2b1a0e" stroke-width="4"/>
-  <path d="M21 32l8 8 15-15" fill="none" stroke="#4e7a1c" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Brújula caricatura: ícono propio de El Brujulista -->
+  <rect x="26" y="2" width="12" height="9" rx="4" fill="#f08a3c" stroke="#2b1a0e" stroke-width="3.5"/>
+  <circle cx="32" cy="36" r="25" fill="#f08a3c" stroke="#2b1a0e" stroke-width="4"/>
+  <circle cx="32" cy="36" r="18" fill="#fffaf0" stroke="#2b1a0e" stroke-width="3.5"/>
+  <path d="M32 21v3M32 48v3M17 36h3M44 36h3" stroke="#2b1a0e" stroke-width="3" stroke-linecap="round"/>
+  <path d="M40 26L36 39 28 33z" fill="#e2574c" stroke="#2b1a0e" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M24 46l4-13 8 6z" fill="#3fb3a3" stroke="#2b1a0e" stroke-width="3" stroke-linejoin="round"/>
+  <circle cx="32" cy="36" r="2.5" fill="#2b1a0e"/>
 </svg>

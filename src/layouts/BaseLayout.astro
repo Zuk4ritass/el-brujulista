@@ -2,13 +2,14 @@
 import '@fontsource/lilita-one';
 import '@fontsource-variable/nunito';
 import '../styles/global.css';
+import { SITE } from '../config';
 
 interface Props {
   title: string;
   description?: string;
 }
 const { title, description = 'Guías paso a paso no oficiales para el servidor Trefus.' } = Astro.props;
-const fullTitle = title === 'Inicio' ? 'Guías Trefus · Guías paso a paso' : `${title} · Guías Trefus`;
+const fullTitle = title === 'Inicio' ? `${SITE.name} · ${SITE.tagline}, paso a paso` : `${title} · ${SITE.name}`;
 
 const path = Astro.url.pathname;
 const nav = [
@@ -32,9 +33,12 @@ const nav = [
 
     <header class="site-header">
       <div class="container site-header__inner">
-        <a class="brand" href="/" aria-label="Guías Trefus, inicio">
-          <img src="/favicon.svg" alt="" width="36" height="36" />
-          <span>Guías Trefus</span>
+        <a class="brand" href="/" aria-label={`${SITE.name}, inicio`}>
+          <img src="/favicon.svg" alt="" width="40" height="40" />
+          <span class="brand__text">
+            <span class="brand__name">{SITE.name}</span>
+            <span class="brand__tag">{SITE.tagline}</span>
+          </span>
         </a>
         <nav aria-label="Principal">
           <ul>
@@ -59,7 +63,7 @@ const nav = [
     <footer class="site-footer">
       <div class="container">
         <p>
-          <strong>Sitio de fans no oficial.</strong> No está afiliado, patrocinado ni aprobado por Ankama
+          <strong>{SITE.name} es un sitio de fans no oficial.</strong> No está afiliado, patrocinado ni aprobado por Ankama
           ni por el equipo de Trefus. Dofus es una marca registrada de Ankama. Aquí no se aloja ni se
           enlaza ningún cliente del juego.
         </p>
@@ -116,7 +120,15 @@ const nav = [
     transition: transform 0.2s cubic-bezier(0.3, 1.6, 0.5, 1);
   }
   .brand:hover img {
-    transform: rotate(-10deg) scale(1.08);
+    transform: rotate(-20deg) scale(1.08);
+  }
+  .brand__text {
+    display: grid;
+  }
+  .brand__tag {
+    font: 800 0.72rem/1.2 var(--font-body);
+    color: var(--ink-soft);
+    letter-spacing: 0.02em;
   }
   nav ul {
     display: flex;
