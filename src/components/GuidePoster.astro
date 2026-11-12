@@ -1,0 +1,299 @@
+---
+// Póster vertical de una guía, estilo plataforma de streaming.
+// Si la guía no trae `cover`, se genera una portada SVG según la categoría (sin assets del juego).
+import { Image } from 'astro:assets';
+import { CATEGORY_LABELS, STATUS_LABELS, levelLabel, type Guia } from '../lib/guides';
+import { stepId } from '../lib/slugify';
+
+interface Props {
+  guia: Guia;
+  /** Tamaño en filas (más chico) o en cuadrícula. */
+  size?: 'row' | 'grid';
+  /** Primeras tarjetas visibles: cargar imagen sin lazy. */
+  eager?: boolean;
+}
+const { guia, size = 'grid', eager = false } = Astro.props;
+const { data } = guia;
+
+const THEMES = {
+  quest: { a: '#3a1d5c', b: '#12081f', glow: '#f2c14e', accent: '#e9b949' },
+  dungeon: { a: '#5c1414', b: '#140404', glow: '#ff6b3d', accent: '#ff8a5c' },
+  ruta: { a: '#0f4a57', b: '#04161b', glow: '#7fe0d6', accent: '#8fe3d9' },
+  tip: { a: '#2f5214', b: '#0b1604', glow: '#c5f06a', accent: '#b3dd5c' },
+} as const;
+const t = THEMES[data.category];
+// Id único por póster: la misma guía puede aparecer varias veces en la página (filas, resultados)
+// y un SVG oculto con ids repetidos rompería los degradados de los visibles.
+const uid = `p-${crypto.randomUUID().slice(0, 8)}`;
+const statusIcon = { verificado: '✓', 'sin-verificar': '?', desactualizado: '!' }[data.verification.status];
+const stepIds = data.steps.map(stepId).join(',');
+const isPending = (s: string) => s.includes('POR COMPLETAR');
+---
+
+<li
+  class:list={['poster', `poster--${size}`]}
+  data-poster
+  data-slug={data.slug}
+  data-category={data.category}
+  data-level-min={data.levelMin ?? ''}
+  data-level-max={data.levelMax ?? ''}
+  data-step-ids={stepIds}
+>
+  <a href={`/guias/${data.slug}/`} class="poster__link">
+    <div class="poster__art" aria-hidden="true">
+      {
+        data.cover ? (
+          <Image src={data.cover} alt="" widths={[240, 400]} sizes="240px" loading={eager ? 'eager' : 'lazy'} />
+        ) : (
+          <svg viewBox="0 0 200 300" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <linearGradient id={`${uid}-bg`} x1="0" y1="0" x2=".4" y2="1">
+                <stop offset="0" stop-color={t.a} />
+                <stop offset="1" stop-color={t.b} />
+              </linearGradient>
+              <radialGradient id={`${uid}-glow`} cx=".7" cy=".3" r=".6">
+                <stop offset="0" stop-color={t.glow} stop-opacity=".55" />
+                <stop offset="1" stop-color={t.glow} stop-opacity="0" />
+              </radialGradient>
+              <pattern id={`${uid}-pat`} width="20" height="20" patternUnits="userSpaceOnUse" patternTransform="rotate(30)">
+                <path d="M0 10h20" stroke={t.accent} stroke-opacity=".08" stroke-width="2" />
+              </pattern>
+            </defs>
+            <rect width="200" height="300" fill={`url(#${uid}-bg)`} />
+            <rect width="200" height="300" fill={`url(#${uid}-pat)`} />
+            <rect width="200" height="300" fill={`url(#${uid}-glow)`} />
+
+            <g class="poster__glyph" fill="none" stroke={t.accent} stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity=".55">
+              {data.category === 'quest' && (
+                <>
+                  <path d="M60 50h80v120H60z" fill={t.a} />
+                  <path d="M52 44h96M52 176h96" stroke-width="10" />
+                  <path d="M78 90l14 14 30-30M78 136h44" />
+                </>
+              )}
+              {data.category === 'dungeon' && (
+                <>
+                  <path d="M60 180V90a40 40 0 0 1 80 0v90z" fill={t.b} />
+                  <path d="M60 180h80M80 180v-60M100 180v-70M120 180v-60" />
+                  <path d="M44 70l12 18M156 70l-12 18" />
+                </>
+              )}
+              {data.category === 'ruta' && (
+                <>
+                  <path d="M40 60l40-14 40 14 40-14v120l-40 14-40-14-40 14z" fill={t.a} />
+                  <path d="M80 46v120M120 60v120" stroke-opacity=".5" />
+                  <path d="M54 140c20-10 28 6 46-6s20-34 44-26" stroke-dasharray="6 8" />
+                  <path d="M138 96l12 12M150 96l-12 12" />
+                </>
+              )}
+              {data.category === 'tip' && (
+                <>
+                  <path d="M100 40a40 40 0 0 0-24 72c6 5 8 12 8 18h32c0-6 2-13 8-18a40 40 0 0 0-24-72z" fill={t.a} />
+                  <path d="M86 146h28M90 160h20" />
+                  <path d="M100 18v-8M150 40l6-6M50 40l-6-6M172 88h8M20 88h8" />
+                </>
+              )}
+            </g>
+            <path d="M8 8h184v284H8z" fill="none" stroke={t.accent} stroke-opacity=".35" stroke-width="2" />
+            <path d="M14 14h172v272H14z" fill="none" stroke={t.accent} stroke-opacity=".15" stroke-width="1" />
+          </svg>
+        )
+      }
+    </div>
+
+    <div class="poster__shade" aria-hidden="true"></div>
+
+    <span class="poster__cat">{CATEGORY_LABELS[data.category]}</span>
+    <span class:list={['poster__status', `poster__status--${data.verification.status}`]}>
+      <span aria-hidden="true">{statusIcon}</span>
+      <span class="visually-hidden">{STATUS_LABELS[data.verification.status]}</span>
+    </span>
+    {data.example && <span class="poster__example">Ejemplo</span>}
+
+    <div class="poster__info">
+      <h3 class="poster__title">{data.title}</h3>
+      <p class="poster__meta">
+        <span class:list={{ dim: isPending(levelLabel(data)) }}>{isPending(levelLabel(data)) ? 'Nivel ?' : levelLabel(data)}</span>
+        <span aria-hidden="true">·</span>
+        <span>{data.steps.length} {data.steps.length === 1 ? 'paso' : 'pasos'}</span>
+      </p>
+    </div>
+
+    <div class="poster__progress" data-poster-progress hidden>
+      <span class="visually-hidden" data-poster-progress-text></span>
+      <span class="poster__progress-bar" aria-hidden="true"><span data-poster-progress-fill></span></span>
+    </div>
+  </a>
+</li>
+
+<script>
+  import { loadProgress } from '../lib/progress';
+
+  // Barra de progreso en cada póster según lo guardado en este navegador.
+  for (const poster of document.querySelectorAll<HTMLElement>('[data-poster]')) {
+    const ids = (poster.dataset.stepIds ?? '').split(',').filter(Boolean);
+    const saved = loadProgress(poster.dataset.slug ?? '');
+    const done = ids.filter((id) => saved.has(id)).length;
+    poster.dataset.done = String(done);
+    poster.dataset.total = String(ids.length);
+    if (done === 0) continue;
+    const box = poster.querySelector<HTMLElement>('[data-poster-progress]')!;
+    box.hidden = false;
+    box.querySelector<HTMLElement>('[data-poster-progress-fill]')!.style.width = `${(done / ids.length) * 100}%`;
+    box.querySelector<HTMLElement>('[data-poster-progress-text]')!.textContent =
+      done === ids.length ? 'Completada' : `Progreso: ${done} de ${ids.length} pasos`;
+  }
+</script>
+
+<style>
+  .poster {
+    list-style: none;
+    flex: none;
+  }
+  .poster--row {
+    width: clamp(140px, 38vw, 200px);
+    scroll-snap-align: start;
+  }
+  .poster__link {
+    position: relative;
+    display: block;
+    aspect-ratio: 2 / 3;
+    overflow: hidden;
+    border-radius: 10px;
+    border: 2px solid rgb(255 255 255 / 0.08);
+    color: #fff8ec;
+    text-decoration: none;
+    background: #0b0704;
+    box-shadow: 0 8px 18px rgb(0 0 0 / 0.5);
+    transition:
+      transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
+      box-shadow 0.25s ease,
+      border-color 0.25s ease;
+  }
+  .poster__link:hover,
+  .poster__link:focus-visible {
+    transform: scale(1.04) translateY(-4px);
+    border-color: var(--gold);
+    box-shadow: 0 16px 30px rgb(0 0 0 / 0.6);
+    z-index: 2;
+  }
+  .poster__link:focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 3px;
+  }
+  .poster__art,
+  .poster__art :global(svg),
+  .poster__art :global(img) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .poster__glyph {
+    transform-origin: 100px 110px;
+    transition: transform 0.4s ease;
+  }
+  .poster__link:hover .poster__glyph {
+    transform: scale(1.08) rotate(-3deg);
+  }
+  .poster__shade {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgb(0 0 0 / 0.35) 0%, transparent 25%, transparent 45%, rgb(0 0 0 / 0.92) 100%);
+  }
+
+  .poster__cat {
+    position: absolute;
+    top: 0.5rem;
+    left: 0.5rem;
+    padding: 0.1em 0.5em;
+    border-radius: 4px;
+    background: rgb(0 0 0 / 0.55);
+    font: 600 0.72rem/1.5 var(--font-display);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .poster__status {
+    position: absolute;
+    top: 0.45rem;
+    right: 0.45rem;
+    display: grid;
+    place-items: center;
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 50%;
+    font-weight: 900;
+    font-size: 0.85rem;
+  }
+  .poster__status--verificado {
+    background: #1f6b3a;
+    border: 2px solid #f2fff5;
+  }
+  .poster__status--sin-verificar {
+    background: rgb(0 0 0 / 0.6);
+    color: var(--warn);
+    border: 2px dashed var(--warn);
+  }
+  .poster__status--desactualizado {
+    background: #5c1a1a;
+    color: #ffe3e0;
+    border: 2px solid var(--danger);
+  }
+  .poster__example {
+    position: absolute;
+    top: 2.1rem;
+    left: 0.5rem;
+    padding: 0.1em 0.5em;
+    border-radius: 4px;
+    background: #3b3f8f;
+    border: 1px solid #8f95ff;
+    font: 600 0.72rem/1.5 var(--font-display);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .poster__info {
+    position: absolute;
+    inset: auto 0 0;
+    padding: 0.7rem 0.7rem 0.85rem;
+  }
+  .poster__title {
+    margin: 0;
+    font-size: clamp(1.05rem, 3.6vw, 1.35rem);
+    line-height: 1.05;
+    text-transform: uppercase;
+    text-shadow: 0 2px 6px rgb(0 0 0 / 0.8);
+    overflow-wrap: anywhere;
+  }
+  .poster--grid .poster__title {
+    font-size: clamp(1.1rem, 2.6vw, 1.45rem);
+  }
+  .poster__meta {
+    display: flex;
+    gap: 0.35rem;
+    margin: 0.3rem 0 0;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #e9dcc2;
+  }
+  .dim {
+    opacity: 0.75;
+  }
+
+  /* Barra roja de "ya empezaste", como en las plataformas de streaming */
+  .poster__progress {
+    position: absolute;
+    inset: auto 0 0;
+  }
+  .poster__progress-bar {
+    display: block;
+    height: 5px;
+    background: rgb(255 255 255 / 0.25);
+  }
+  .poster__progress-bar > span {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: var(--green);
+  }
+</style>

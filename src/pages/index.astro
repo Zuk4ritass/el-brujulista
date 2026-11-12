@@ -2,147 +2,132 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import HeroScene from '../components/HeroScene.astro';
-import GuideCard from '../components/GuideCard.astro';
+import GuidePoster from '../components/GuidePoster.astro';
+import PosterRow from '../components/PosterRow.astro';
+import SearchBox from '../components/SearchBox.astro';
 import VerificationBadge from '../components/VerificationBadge.astro';
-import { sortGuides } from '../lib/guides';
+import { CATEGORY_LABELS, levelLabel, sortGuides, type Category } from '../lib/guides';
+import { stepId } from '../lib/slugify';
 
 const guias = sortGuides(await getCollection('guias'));
-const destacadas = guias.slice(0, 3);
-const titleWords = ['Guías', 'paso', 'a', 'paso', 'para', 'Trefus'];
+const featured = guias.find((g) => g.data.featured) ?? guias.find((g) => !g.data.example) ?? guias[0];
+const f = featured.data;
+const hasLevel = !levelLabel(f).includes('POR COMPLETAR');
+const hasSummary = !f.summary.includes('POR COMPLETAR');
+
+const ROW_TITLES: Record<Category, string> = {
+  quest: 'Quests',
+  dungeon: 'Dungeons',
+  ruta: 'Rutas y viajes',
+  tip: 'Tips',
+};
+const byCategory = (Object.keys(ROW_TITLES) as Category[])
+  .map((c) => ({ c, items: guias.filter((g) => g.data.category === c) }))
+  .filter((r) => r.items.length > 0);
 ---
 
 <BaseLayout title="Inicio">
-  <section class="hero" aria-labelledby="hero-title">
+  <!-- Guía destacada, en grande -->
+  <section class="billboard" aria-labelledby="destacada-titulo">
     <HeroScene />
-    <div class="hero__scrim" aria-hidden="true"></div>
-
-    <div class="container hero__content">
-      <p class="ribbon hero__eyebrow">Fansite no oficial</p>
-      <h1 id="hero-title" class="hero__title">
-        {titleWords.map((w, i) => (
-          <>
-            <span style={`--i:${i}`}>{w}</span>{' '}
-          </>
-        ))}
-      </h1>
-      <p class="hero__lead">
-        Trefus es un servidor privado basado en Dofus 1.29 con contenido de versiones más nuevas.
-        Aquí encuentras guías en forma de checklist: marca cada paso y retoma justo donde lo dejaste.
-      </p>
-      <div class="hero__actions">
-        <a class="btn" href="/guias/">Ver las guías</a>
-        <a class="btn btn--ghost" href="/contribuir/">Cómo contribuir</a>
+    <div class="billboard__scrim" aria-hidden="true"></div>
+    <div class="container billboard__content">
+      <p class="ribbon billboard__eyebrow">Guía destacada</p>
+      <h1 id="destacada-titulo" class="billboard__title">{f.title}</h1>
+      <div class="billboard__meta">
+        <VerificationBadge status={f.verification.status} />
+        <span class="chip">{CATEGORY_LABELS[f.category]}</span>
+        {hasLevel && <span class="chip">{levelLabel(f)}</span>}
+        <span class="chip">{f.steps.length} pasos</span>
+      </div>
+      {hasSummary && <p class="billboard__summary">{f.summary}</p>}
+      <div class="billboard__actions">
+        <a
+          class="btn"
+          href={`/guias/${f.slug}/`}
+          data-featured-cta
+          data-slug={f.slug}
+          data-step-ids={f.steps.map(stepId).join(',')}
+        >
+          <span aria-hidden="true">▶</span> <span data-cta-label>Empezar guía</span>
+        </a>
+        <a class="btn btn--ghost" href="/guias/">Ver todas</a>
       </div>
     </div>
-
-    <a class="hero__scroll" href="#como-funciona" aria-label="Bajar a cómo funciona">
-      <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"
-        ><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"
-        ></path></svg
-      >
-    </a>
   </section>
 
-  <section id="como-funciona" class="container section" aria-labelledby="como-titulo">
-    <h2 id="como-titulo" class="ribbon reveal">Cómo funciona</h2>
-    <ul class="features">
-      <li class="panel reveal" style="--delay:.05s">
-        <svg class="features__icon" viewBox="0 0 48 48" aria-hidden="true">
-          <rect x="8" y="6" width="32" height="36" rx="4" fill="#ecdcb4" stroke="#6e2c09" stroke-width="3"></rect>
-          <path d="M14 18l4 4 7-8M14 30l4 4 7-8" fill="none" stroke="#2f4410" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"></path>
-          <path d="M29 19h6M29 31h6" stroke="#6e2c09" stroke-width="3" stroke-linecap="round"></path>
-        </svg>
-        <h3>Checklist con progreso</h3>
-        <p>Cada guía es una lista de pasos. Tu avance se guarda en este navegador, sin cuentas ni registros.</p>
-      </li>
-      <li class="panel reveal" style="--delay:.15s">
-        <svg class="features__icon" viewBox="0 0 48 48" aria-hidden="true">
-          <ellipse cx="24" cy="27" rx="11" ry="13" fill="#b8501a" stroke="#3a1504" stroke-width="3"></ellipse>
-          <circle cx="24" cy="12" r="6" fill="#6e2c09" stroke="#3a1504" stroke-width="3"></circle>
-          <path d="M13 22H6M13 32H6M35 22h7M35 32h7M24 16v24" stroke="#3a1504" stroke-width="3" stroke-linecap="round"></path>
-        </svg>
-        <h3>Bugs conocidos</h3>
-        <p>Trefus tiene bugs propios. Cada guía avisa cuáles hay y, si se conoce, cómo evitarlos.</p>
-      </li>
-      <li class="panel reveal" style="--delay:.25s">
-        <svg class="features__icon" viewBox="0 0 48 48" aria-hidden="true">
-          <path d="M24 4l16 6v12c0 11-7 18-16 22C15 40 8 33 8 22V10z" fill="#8fbf3c" stroke="#2f4410" stroke-width="3" stroke-linejoin="round"></path>
-          <path d="M16 24l6 6 11-12" fill="none" stroke="#16210a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
-        </svg>
-        <h3>Verificado jugando</h3>
-        <p>Una guía solo se marca como verificada cuando alguien la comprobó en el servidor, con fecha.</p>
-      </li>
-    </ul>
-  </section>
-
-  <section class="container section" aria-labelledby="aviso-titulo">
-    <div class="parchment notice reveal">
-      <h2 id="aviso-titulo">Trefus no es Dofus 2.x</h2>
-      <p>
-        Mucha información de Dofus que encuentras en internet es de la versión 2.x y puede no coincidir
-        con Trefus: quests, requisitos, mapas y drops pueden ser distintos o tener bugs. Por eso aquí no
-        se copia nada de otras wikis: cada dato se comprueba jugando.
-      </p>
-      <p>
-        Si algo de una guía no te cuadra, <a href="/contribuir/">avísanos</a>.
+  <div class="container">
+    <div class="search-wrap">
+      <SearchBox id="buscar-inicio" size="big" />
+      <p class="search-note">
+        Guías no oficiales para el servidor <strong>Trefus</strong>. El contenido puede diferir de Dofus 2.x.
       </p>
     </div>
-  </section>
 
-  <section class="container section" aria-labelledby="guias-titulo">
-    <div class="section__head">
-      <h2 id="guias-titulo" class="ribbon ribbon--green reveal">Guías</h2>
-      <a href="/guias/" class="section__more">Ver todas ({guias.length}) →</a>
+    <!-- Resultados de búsqueda (reemplazan las filas mientras hay texto en el buscador) -->
+    <section class="results" aria-labelledby="resultados-titulo" data-results hidden>
+      <h2 id="resultados-titulo" class="results__title" data-results-title aria-live="polite">Resultados</h2>
+      <ul class="poster-grid" data-results-grid>
+        {guias.map((g) => <GuidePoster guia={g} />)}
+      </ul>
+      <div class="results__empty panel" data-results-empty hidden>
+        <p><strong>No encontramos guías para "<span data-results-query></span>".</strong></p>
+        <p>¿Te gustaría que exista? <a href="/sugerir/">Sugiere esta guía</a> y la tendremos en cuenta.</p>
+      </div>
+    </section>
+
+    <div data-rows>
+      <PosterRow title="Continúa donde quedaste" id="fila-continuar" hidden>
+        {guias.map((g) => <GuidePoster guia={g} size="row" />)}
+      </PosterRow>
+
+      {
+        byCategory.map(({ c, items }, i) => (
+          <PosterRow title={ROW_TITLES[c]} id={`fila-${c}`}>
+            {items.map((g) => (
+              <GuidePoster guia={g} size="row" eager={i === 0} />
+            ))}
+          </PosterRow>
+        ))
+      }
+
+      <p class="legend">
+        <span><b class="dot dot--ok">✓</b> Verificada jugando</span>
+        <span><b class="dot dot--warn">?</b> Sin verificar</span>
+        <span><b class="dot dot--bad">!</b> Desactualizada</span>
+        <span><span class="bar" aria-hidden="true"></span> Tu progreso</span>
+      </p>
     </div>
-    <ul class="grid">
-      {destacadas.map((g) => <GuideCard guia={g} />)}
-    </ul>
-  </section>
-
-  <section class="container section" aria-labelledby="badges-titulo">
-    <h2 id="badges-titulo" class="ribbon reveal">Qué significa cada sello</h2>
-    <dl class="legend">
-      <div class="panel reveal" style="--delay:.05s">
-        <dt><VerificationBadge status="verificado" /></dt>
-        <dd>Alguien la siguió completa en Trefus y funcionó. Verás la fecha y quién la verificó.</dd>
-      </div>
-      <div class="panel reveal" style="--delay:.15s">
-        <dt><VerificationBadge status="sin-verificar" /></dt>
-        <dd>Todavía no se ha comprobado jugando. Puede tener datos incompletos o incorrectos.</dd>
-      </div>
-      <div class="panel reveal" style="--delay:.25s">
-        <dt><VerificationBadge status="desactualizado" /></dt>
-        <dd>Se verificó antes, pero algo cambió en el servidor. Úsala con cuidado.</dd>
-      </div>
-    </dl>
-  </section>
+  </div>
 </BaseLayout>
 
 <style>
-  /* ---------- Héroe ---------- */
-  .hero {
+  /* ---------- Destacada ---------- */
+  .billboard {
     position: relative;
     display: grid;
-    align-items: center;
-    min-height: clamp(560px, 88vh, 780px);
+    align-items: end;
+    min-height: clamp(460px, 72vh, 640px);
     margin-top: -3px;
     overflow: hidden;
     isolation: isolate;
   }
-  .hero__scrim {
+  .billboard__scrim {
     position: absolute;
     inset: 0;
     z-index: 1;
-    background: linear-gradient(100deg, rgb(10 8 20 / 0.7) 0%, rgb(10 8 20 / 0.35) 45%, transparent 70%);
+    background:
+      linear-gradient(90deg, rgb(10 8 20 / 0.75) 0%, rgb(10 8 20 / 0.35) 50%, transparent 75%),
+      linear-gradient(0deg, var(--bg) 0%, transparent 35%);
     pointer-events: none;
   }
-  .hero__content {
+  .billboard__content {
     position: relative;
     z-index: 2;
-    padding-block: 4rem 6rem;
+    padding-block: 3rem 4.5rem;
   }
-  .hero__eyebrow {
-    font-size: 0.9rem;
+  .billboard__eyebrow {
+    font-size: 0.85rem;
     animation: unfurl 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
     transform-origin: left center;
   }
@@ -151,143 +136,184 @@ const titleWords = ['Guías', 'paso', 'a', 'paso', 'para', 'Trefus'];
       transform: scaleX(0);
       opacity: 0;
     }
-    to {
-      transform: scaleX(1);
-      opacity: 1;
-    }
   }
-  .hero__title {
+  .billboard__title {
     max-width: 14ch;
-    margin: 1rem 0;
-    font-size: clamp(2.6rem, 9vw, 5.2rem);
-    line-height: 0.98;
+    margin: 0.8rem 0 0.9rem;
+    font-size: clamp(3rem, 12vw, 6.5rem);
+    line-height: 0.92;
     color: #fff8ec;
-    text-shadow: 0 4px 0 rgb(0 0 0 / 0.45), 0 10px 30px rgb(0 0 0 / 0.5);
+    text-shadow: 0 5px 0 rgb(0 0 0 / 0.45), 0 12px 30px rgb(0 0 0 / 0.55);
+    animation: rise-in 0.8s 0.15s cubic-bezier(0.2, 0.8, 0.2, 1) both;
   }
-  .hero__title span {
-    display: inline-block;
-    animation: rise-in 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-    animation-delay: calc(0.25s + var(--i) * 0.08s);
+  .billboard__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.45rem;
+    animation: rise-in 0.7s 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both;
   }
-  /* La última palabra en dorado */
-  .hero__title span:last-child {
-    color: var(--gold);
+  .billboard__meta .chip {
+    background: rgb(0 0 0 / 0.5);
+  }
+  .billboard__summary {
+    max-width: 46ch;
+    margin: 1rem 0 0;
+    font-size: 1.1rem;
+    text-shadow: 0 2px 8px rgb(0 0 0 / 0.8);
+  }
+  .billboard__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    margin-top: 1.5rem;
+    animation: rise-in 0.7s 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
   }
   @keyframes rise-in {
     from {
       opacity: 0;
-      transform: translateY(0.5em) rotate(2deg);
-    }
-    to {
-      opacity: 1;
-      transform: none;
-    }
-  }
-  .hero__lead {
-    max-width: 44ch;
-    margin: 0 0 1.75rem;
-    font-size: clamp(1.05rem, 2.4vw, 1.2rem);
-    color: #f6ecd8;
-    text-shadow: 0 2px 8px rgb(0 0 0 / 0.7);
-    animation: rise-in 0.7s 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-  }
-  .hero__actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.9rem;
-    animation: rise-in 0.7s 1s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-  }
-  .hero__scroll {
-    position: absolute;
-    z-index: 2;
-    left: 50%;
-    bottom: 1.25rem;
-    display: grid;
-    place-items: center;
-    width: 48px;
-    height: 48px;
-    margin-left: -24px;
-    border-radius: 50%;
-    color: var(--text);
-    background: rgb(0 0 0 / 0.35);
-    animation: nudge 2s ease-in-out infinite;
-  }
-  @keyframes nudge {
-    0%,
-    100% {
-      transform: translateY(0);
-    }
-    50% {
-      transform: translateY(6px);
+      transform: translateY(0.6em);
     }
   }
 
-  /* ---------- Secciones ---------- */
-  .section {
-    margin-top: clamp(3rem, 8vw, 5rem);
+  /* ---------- Buscador ---------- */
+  .search-wrap {
+    position: relative;
+    z-index: 3;
+    max-width: 720px;
+    margin: -1.75rem auto 0;
   }
-  .section__head {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
-  }
-  .section__more {
-    font-weight: 700;
-  }
-  .features,
-  .grid,
-  .legend {
-    display: grid;
-    gap: 1rem;
-    margin: 1.5rem 0 0;
-    padding: 0;
-    list-style: none;
-  }
-  @media (min-width: 760px) {
-    .features,
-    .legend {
-      grid-template-columns: repeat(3, 1fr);
-    }
-    .grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-  .features h3 {
-    margin: 0.6rem 0 0.35rem;
-    color: var(--gold);
-  }
-  .features p {
-    margin: 0;
+  .search-note {
+    margin: 0.7rem 0 0;
+    text-align: center;
+    font-size: 0.88rem;
     color: var(--text-soft);
   }
-  .features__icon {
-    width: 52px;
-    height: 52px;
-    filter: drop-shadow(0 3px 0 rgb(0 0 0 / 0.4));
-    transition: transform 0.3s ease;
-  }
-  .features li:hover .features__icon {
-    transform: rotate(-6deg) scale(1.08);
-  }
 
-  .notice {
-    max-width: 760px;
-    margin-inline: auto;
-    rotate: -0.6deg; /* propiedad aparte para no chocar con el transform de .reveal */
+  /* ---------- Resultados ---------- */
+  .results {
+    margin-top: 2rem;
   }
-  .notice h2 {
-    margin: 0 0 0.5rem;
+  .results__title {
+    margin: 0 0 1rem;
+    font-size: 1.3rem;
     text-transform: uppercase;
-    color: #6e2c09;
   }
-  .notice p {
-    margin: 0 0 0.6rem;
+  .results__empty p {
+    margin: 0 0 0.4rem;
+  }
+  .poster-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+  }
+  @media (min-width: 720px) {
+    .poster-grid {
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    }
   }
 
-  .legend dd {
-    margin: 0.6rem 0 0;
+  /* ---------- Leyenda ---------- */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.25rem;
+    margin: 1.5rem 0 0;
+    font-size: 0.85rem;
     color: var(--text-soft);
+  }
+  .legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .dot {
+    display: inline-grid;
+    place-items: center;
+    width: 1.3rem;
+    height: 1.3rem;
+    border-radius: 50%;
+    font-size: 0.75rem;
+  }
+  .dot--ok {
+    background: #1f6b3a;
+    border: 2px solid #f2fff5;
+    color: #fff;
+  }
+  .dot--warn {
+    color: var(--warn);
+    border: 2px dashed var(--warn);
+  }
+  .dot--bad {
+    background: #5c1a1a;
+    color: #ffe3e0;
+    border: 2px solid var(--danger);
+  }
+  .bar {
+    display: inline-block;
+    width: 1.6rem;
+    height: 5px;
+    background: linear-gradient(90deg, var(--green) 60%, rgb(255 255 255 / 0.25) 60%);
   }
 </style>
+
+<script>
+  import { initSearch } from '../lib/search-ui';
+  import { loadProgress } from '../lib/progress';
+
+  // Botón de la destacada: "Continuar" si ya empezaste
+  const cta = document.querySelector<HTMLAnchorElement>('[data-featured-cta]');
+  if (cta) {
+    const ids = (cta.dataset.stepIds ?? '').split(',');
+    const saved = loadProgress(cta.dataset.slug ?? '');
+    const done = ids.filter((id) => saved.has(id)).length;
+    if (done > 0 && done < ids.length) cta.querySelector('[data-cta-label]')!.textContent = `Continuar (${done}/${ids.length})`;
+    if (done === ids.length) cta.querySelector('[data-cta-label]')!.textContent = 'Repasar guía';
+  }
+
+  // Fila "Continúa donde quedaste": solo guías empezadas y no terminadas
+  const contRow = document.querySelector<HTMLElement>('#fila-continuar');
+  if (contRow) {
+    let any = false;
+    for (const p of contRow.querySelectorAll<HTMLElement>('[data-poster]')) {
+      const ids = (p.dataset.stepIds ?? '').split(',').filter(Boolean);
+      const saved = loadProgress(p.dataset.slug ?? '');
+      const done = ids.filter((id) => saved.has(id)).length;
+      const show = done > 0 && done < ids.length;
+      p.hidden = !show;
+      any ||= show;
+    }
+    contRow.hidden = !any;
+  }
+
+  // Búsqueda en vivo
+  const results = document.querySelector<HTMLElement>('[data-results]')!;
+  const grid = document.querySelector<HTMLElement>('[data-results-grid]')!;
+  const rows = document.querySelector<HTMLElement>('[data-rows]')!;
+  const title = document.querySelector<HTMLElement>('[data-results-title]')!;
+  const empty = document.querySelector<HTMLElement>('[data-results-empty]')!;
+  const posters = new Map(
+    [...grid.querySelectorAll<HTMLElement>('[data-poster]')].map((p) => [p.dataset.slug!, p]),
+  );
+
+  initSearch((slugs, query) => {
+    const searching = slugs !== null;
+    results.hidden = !searching;
+    rows.hidden = searching;
+    if (!slugs) return;
+    for (const p of posters.values()) p.hidden = true;
+    for (const slug of slugs) {
+      const p = posters.get(slug);
+      if (p) {
+        p.hidden = false;
+        grid.append(p); // reordena por relevancia
+      }
+    }
+    title.textContent =
+      slugs.length === 0 ? 'Sin resultados' : `${slugs.length} ${slugs.length === 1 ? 'resultado' : 'resultados'} para "${query}"`;
+    empty.hidden = slugs.length > 0;
+    empty.querySelector('[data-results-query]')!.textContent = query;
+  });
+</script>

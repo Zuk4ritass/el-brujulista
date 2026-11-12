@@ -1,0 +1,101 @@
+---
+// Fila horizontal deslizable de pósters (tipo "carrusel" de streaming).
+// En celular se desliza con el dedo; en escritorio aparecen flechas.
+interface Props {
+  title: string;
+  id: string;
+  /** Fila oculta hasta que un script decida mostrarla (ej. "Continúa donde quedaste"). */
+  hidden?: boolean;
+}
+const { title, id, hidden = false } = Astro.props;
+---
+
+<section class="row" aria-labelledby={`${id}-title`} data-row id={id} hidden={hidden}>
+  <div class="row__head">
+    <h2 id={`${id}-title`} class="row__title">{title}</h2>
+    <div class="row__nav">
+      <button type="button" class="row__btn" data-dir="-1" aria-label={`Anteriores en ${title}`}>‹</button>
+      <button type="button" class="row__btn" data-dir="1" aria-label={`Siguientes en ${title}`}>›</button>
+    </div>
+  </div>
+  <ul class="row__track" data-track>
+    <slot />
+  </ul>
+</section>
+
+<style>
+  .row {
+    margin-top: 2rem;
+  }
+  .row__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .row__title {
+    margin: 0;
+    font-size: clamp(1.2rem, 3vw, 1.5rem);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .row__nav {
+    display: none;
+    gap: 0.4rem;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .row__nav {
+      display: flex;
+    }
+  }
+  .row__btn {
+    width: 2.4rem;
+    height: 2.4rem;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .row__btn:hover {
+    border-color: var(--gold);
+  }
+  .row__btn:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+  .row__track {
+    display: flex;
+    gap: 0.9rem;
+    margin: 0.75rem calc(var(--gutter) * -1) 0;
+    padding: 0.75rem var(--gutter) 1.25rem;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--gutter);
+    scrollbar-width: none;
+  }
+  .row__track::-webkit-scrollbar {
+    display: none;
+  }
+</style>
+
+<script>
+  for (const row of document.querySelectorAll<HTMLElement>('[data-row]')) {
+    const track = row.querySelector<HTMLElement>('[data-track]')!;
+    const [prev, next] = row.querySelectorAll<HTMLButtonElement>('.row__btn');
+    const update = () => {
+      prev.disabled = track.scrollLeft <= 4;
+      next.disabled = track.scrollLeft + track.clientWidth >= track.scrollWidth - 4;
+    };
+    for (const btn of [prev, next]) {
+      btn.addEventListener('click', () => {
+        track.scrollBy({ left: Number(btn.dataset.dir) * track.clientWidth * 0.85, behavior: 'smooth' });
+      });
+    }
+    track.addEventListener('scroll', update, { passive: true });
+    new ResizeObserver(update).observe(track);
+  }
+</script>

@@ -4,6 +4,7 @@ title: "Ejemplo: ruta corta de prueba"
 slug: ejemplo-ruta-corta
 summary: Guía ficticia para probar filtros y checklist. No la sigas en el juego.
 example: true
+tags: [prueba, demo]
 levelMin: 1
 levelMax: 20
 category: tip

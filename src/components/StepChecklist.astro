@@ -38,7 +38,7 @@ const total = steps.length;
   <!-- Requisitos, contexto, etc. van aquí: debajo de la barra y antes de los pasos. -->
   <slot />
 
-  <h2>Pasos</h2>
+  <h2 class="visually-hidden">Pasos</h2>
   <ol class="steps">
     {
       steps.map((step, i) => {
@@ -159,6 +159,7 @@ const total = steps.length;
   }
 
   .steps {
+    margin-top: 1.1rem !important;
     display: grid;
     gap: 0.9rem;
     padding: 0;
@@ -232,20 +233,24 @@ const total = steps.length;
   .step__body p {
     margin: 0.5rem 0 0;
   }
+  /* Mapa / coordenadas / recompensa en una sola línea de chips */
   .step__facts {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem 1.25rem;
-    margin: 0.7rem 0 0;
+    gap: 0.4rem;
+    margin: 0.6rem 0 0;
   }
   .step__facts > div {
-    padding: 0.35rem 0.7rem;
-    border-radius: 8px;
-    background: rgb(0 0 0 / 0.25);
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.35rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 6px;
+    background: rgb(0 0 0 / 0.28);
     border: 1px solid var(--border);
   }
   .step__facts dt {
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.08em;
@@ -268,6 +273,14 @@ const total = steps.length;
   .step.is-done .step__title {
     text-decoration: line-through;
     text-decoration-thickness: 2px;
+  }
+  /* Paso hecho: se pliega a solo el título para que la página se acorte al avanzar.
+     Desmarcarlo lo vuelve a mostrar completo. */
+  .step.is-done .step__body {
+    display: none;
+  }
+  .step.is-done {
+    padding-block: 0.6rem;
   }
   /* Siguiente paso pendiente: resaltado para retomar rápido. */
   .step.is-next {

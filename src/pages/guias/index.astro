@@ -1,8 +1,9 @@
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import GuideCard from '../../components/GuideCard.astro';
+import GuidePoster from '../../components/GuidePoster.astro';
 import GuideFilters from '../../components/GuideFilters.astro';
+import SearchBox from '../../components/SearchBox.astro';
 import { sortGuides, type Category } from '../../lib/guides';
 
 const guias = sortGuides(await getCollection('guias'));
@@ -10,107 +11,134 @@ const guias = sortGuides(await getCollection('guias'));
 const categories = [...new Set(guias.map((g) => g.data.category))] as Category[];
 ---
 
-<BaseLayout title="Guías" description="Listado de guías paso a paso para Trefus, filtrables por nivel y categoría.">
+<BaseLayout title="Todas las guías" description="Catálogo de guías paso a paso para Trefus, con buscador y filtros.">
   <div class="container page">
-    <h1 class="page-title">Guías</h1>
-    <p class="page-lead">
-      Guías escritas para <strong>Trefus</strong>. Revisa el sello de cada una: solo las marcadas
-      como <em>Verificado</em> se comprobaron jugando en el servidor.
-    </p>
+    <h1 class="page-title">Todas las guías</h1>
 
-    <div class="panel filters-panel">
+    <div class="tools">
+      <SearchBox id="buscar-catalogo" />
       <GuideFilters categories={categories} />
-      <p class="count" id="conteo" role="status" aria-live="polite">{guias.length} guías</p>
     </div>
+    <p class="count" id="conteo" role="status" aria-live="polite">{guias.length} guías</p>
 
-    <ul class="grid" id="lista-guias">
-      {guias.map((g) => <GuideCard guia={g} />)}
+    <ul class="poster-grid" id="lista-guias">
+      {guias.map((g, i) => <GuidePoster guia={g} eager={i < 6} />)}
     </ul>
-    <p class="empty panel" id="sin-resultados" hidden>
-      No hay guías con esos filtros todavía. Prueba otro rango de nivel o categoría.
-    </p>
+    <div class="empty panel" id="sin-resultados" hidden>
+      <p><strong>No hay guías con esa búsqueda o filtros.</strong></p>
+      <p>¿Falta una guía? <a href="/sugerir/">Sugiérela</a> y la tendremos en cuenta.</p>
+    </div>
   </div>
 </BaseLayout>
 
 <style>
-  .grid {
+  .page-title {
+    margin-bottom: 1.25rem;
+  }
+  .tools {
     display: grid;
-    gap: 1.1rem;
-    padding: 0;
-    margin: 1.5rem 0 0;
-  }
-  .filters-panel {
-    padding-block: 0.4rem 0.6rem;
-  }
-  @media (min-width: 720px) {
-    .grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
+    gap: 0.25rem;
   }
   .count {
-    margin: 0.5rem 0;
+    margin: 0.75rem 0 1rem;
     font-size: 0.9rem;
-    opacity: 0.85;
+    color: var(--text-soft);
   }
-  .empty {
-    padding: 1rem;
-    border: 1px dashed var(--border, #6b5640);
-    border-radius: 10px;
+  .poster-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+  }
+  @media (min-width: 720px) {
+    .poster-grid {
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    }
+  }
+  .empty p {
+    margin: 0 0 0.4rem;
   }
 </style>
 
 <script>
   import { LEVEL_RANGES } from '../../lib/guides';
+  import { initSearch } from '../../lib/search-ui';
 
-  const form = document.querySelector<HTMLFormElement>('#filtros');
-  const nivel = document.querySelector<HTMLSelectElement>('#f-nivel');
-  const categoria = document.querySelector<HTMLSelectElement>('#f-categoria');
-  const conteo = document.querySelector<HTMLElement>('#conteo');
-  const vacio = document.querySelector<HTMLElement>('#sin-resultados');
-  const cards = [...document.querySelectorAll<HTMLElement>('[data-guide]')];
+  const form = document.querySelector<HTMLFormElement>('#filtros')!;
+  const nivel = document.querySelector<HTMLSelectElement>('#f-nivel')!;
+  const categoria = document.querySelector<HTMLSelectElement>('#f-categoria')!;
+  const conteo = document.querySelector<HTMLElement>('#conteo')!;
+  const vacio = document.querySelector<HTMLElement>('#sin-resultados')!;
+  const grid = document.querySelector<HTMLElement>('#lista-guias')!;
+  const posters = [...grid.querySelectorAll<HTMLElement>('[data-poster]')];
+  const originalOrder = posters.slice();
+  form.hidden = false;
 
-  if (form && nivel && categoria && conteo && vacio) {
-    form.hidden = false;
+  let matches: string[] | null = null;
+  let query = '';
 
-    // Restaurar filtros desde la URL (?nivel=51-100&categoria=quest) para poder compartir el enlace.
-    const params = new URLSearchParams(location.search);
-    const setIfValid = (sel: HTMLSelectElement, v: string | null) => {
-      if (v && [...sel.options].some((o) => o.value === v)) sel.value = v;
-    };
-    setIfValid(nivel, params.get('nivel'));
-    setIfValid(categoria, params.get('categoria'));
+  const apply = () => {
+    const range = LEVEL_RANGES.find((r) => r.value === nivel.value);
+    const cat = categoria.value;
+    // Con búsqueda: orden por relevancia. Sin búsqueda: orden original.
+    const ordered = matches
+      ? matches.map((s) => posters.find((p) => p.dataset.slug === s)!).filter(Boolean)
+      : originalOrder;
+    const inSearch = new Set(ordered);
+    let visible = 0;
 
-    const apply = () => {
-      const range = LEVEL_RANGES.find((r) => r.value === nivel.value);
-      const cat = categoria.value;
-      let visible = 0;
+    for (const p of posters) {
+      const min = p.dataset.levelMin ? Number(p.dataset.levelMin) : null;
+      const max = p.dataset.levelMax ? Number(p.dataset.levelMax) : null;
+      // Guías sin nivel conocido aparecen en cualquier rango (no las escondemos por falta de datos).
+      const lvlOk = !range || ((min ?? 1) <= range.max && (max ?? 200) >= range.min);
+      const catOk = !cat || p.dataset.category === cat;
+      const show = inSearch.has(p) && lvlOk && catOk;
+      p.hidden = !show;
+      if (show) visible++;
+    }
+    for (const p of ordered) grid.append(p);
 
-      for (const card of cards) {
-        const min = card.dataset.levelMin ? Number(card.dataset.levelMin) : null;
-        const max = card.dataset.levelMax ? Number(card.dataset.levelMax) : null;
-        // Guías sin nivel conocido aparecen en cualquier rango (no las escondemos por falta de datos).
-        const lvlOk = !range || ((min ?? 1) <= range.max && (max ?? 200) >= range.min);
-        const catOk = !cat || card.dataset.category === cat;
-        const show = lvlOk && catOk;
-        card.hidden = !show;
-        if (show) visible++;
-      }
+    conteo.textContent = query
+      ? `${visible} ${visible === 1 ? 'resultado' : 'resultados'} para "${query}"`
+      : visible === posters.length
+        ? `${posters.length} guías`
+        : `Mostrando ${visible} de ${posters.length} guías`;
+    vacio.hidden = visible > 0;
 
-      conteo.textContent =
-        visible === cards.length ? `${cards.length} guías` : `Mostrando ${visible} de ${cards.length} guías`;
-      vacio.hidden = visible > 0;
+    // La URL refleja búsqueda y filtros, para poder compartir el enlace.
+    const next = new URLSearchParams();
+    if (query) next.set('q', query);
+    if (nivel.value) next.set('nivel', nivel.value);
+    if (cat) next.set('categoria', cat);
+    const qs = next.toString();
+    history.replaceState(null, '', qs ? `?${qs}` : location.pathname);
+  };
 
-      const next = new URLSearchParams();
-      if (nivel.value) next.set('nivel', nivel.value);
-      if (cat) next.set('categoria', cat);
-      const qs = next.toString();
-      history.replaceState(null, '', qs ? `?${qs}` : location.pathname);
-    };
+  const ui = initSearch((slugs, q) => {
+    matches = slugs;
+    query = q;
+    apply();
+  });
 
-    form.addEventListener('change', apply);
-    // `reset` se dispara antes de que los selects vuelvan a su valor inicial.
-    form.addEventListener('reset', () => setTimeout(apply));
-    form.addEventListener('submit', (e) => e.preventDefault());
+  // Restaurar desde la URL (?q=goloson&nivel=51-100&categoria=quest)
+  const params = new URLSearchParams(location.search);
+  const setIfValid = (sel: HTMLSelectElement, v: string | null) => {
+    if (v && [...sel.options].some((o) => o.value === v)) sel.value = v;
+  };
+  setIfValid(nivel, params.get('nivel'));
+  setIfValid(categoria, params.get('categoria'));
+  form.addEventListener('change', apply);
+  // `reset` se dispara antes de que los selects vuelvan a su valor inicial.
+  form.addEventListener('reset', () => setTimeout(() => ui?.setQuery('')));
+  form.addEventListener('submit', (e) => e.preventDefault());
+
+  if (ui) {
+    ui.setQuery(params.get('q') ?? '');
+    // Desde la lupa del header: /guias/?buscar → foco en el buscador
+    if (params.has('buscar')) ui.input.focus();
+  } else {
     apply();
   }
 </script>

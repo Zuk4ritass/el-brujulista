@@ -2,7 +2,9 @@
 # Guía piloto. TODO el contenido de juego está pendiente: lo completa Manuel jugando.
 title: Llegar a FG
 slug: llegar-a-fg
-summary: Cómo llegar a la isla de Frigost (FG) en Trefus. POR COMPLETAR.
+summary: POR COMPLETAR
+tags: [FG, Frigost]
+featured: true
 # levelMin / levelMax: POR COMPLETAR (se dejan vacíos hasta confirmarlos en el juego)
 category: ruta # POR COMPLETAR: confirmar si en Trefus es una quest o solo una ruta
 requirements:

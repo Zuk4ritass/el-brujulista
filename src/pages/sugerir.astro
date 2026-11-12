@@ -1,0 +1,116 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../config';
+
+const discord = SITE.discordUrl;
+---
+
+<BaseLayout
+  title="Sugiere una guía"
+  description="¿Qué guía te gustaría encontrar? Propón ideas de guías nuevas para Trefus."
+>
+  <div class="container page suggest">
+    <h1 class="page-title">Sugiere una guía</h1>
+    <p class="page-lead">
+      ¿Te trabaste en algo y no encontraste ayuda? Cuéntanos qué guía te gustaría ver. Nosotros la
+      escribimos y la comprobamos jugando en Trefus antes de publicarla.
+    </p>
+
+    <div class="cta panel reveal">
+      <svg class="cta__icon" viewBox="0 0 48 48" aria-hidden="true">
+        <path d="M24 6a14 14 0 0 0-8 25.5c2 1.6 3 3.8 3 6.5h10c0-2.7 1-4.9 3-6.5A14 14 0 0 0 24 6z" fill="#f2c14e" stroke="#6e2c09" stroke-width="3" stroke-linejoin="round"></path>
+        <path d="M19 42h10" stroke="#6e2c09" stroke-width="3" stroke-linecap="round"></path>
+      </svg>
+      <div>
+        <h2>Deja tu idea en Discord</h2>
+        <p>Es el canal donde recibimos las propuestas y vemos cuáles pide más gente.</p>
+        {
+          discord ? (
+            <a class="btn" href={discord} target="_blank" rel="noopener noreferrer">
+              Ir al Discord <span aria-hidden="true">↗</span>
+              <span class="visually-hidden">(se abre en una pestaña nueva)</span>
+            </a>
+          ) : (
+            <span class="btn btn--ghost is-soon" aria-disabled="true">Discord próximamente</span>
+          )
+        }
+      </div>
+    </div>
+
+    <section class="panel reveal" aria-labelledby="como-titulo">
+      <h2 id="como-titulo">Cómo escribir una buena sugerencia</h2>
+      <ul class="tips">
+        <li><strong>Qué quieres lograr:</strong> por ejemplo, llegar a un lugar, terminar una quest o pasar un dungeon.</li>
+        <li><strong>Dónde te trabaste</strong>, si ya lo intentaste.</li>
+        <li><strong>Tu nivel aproximado</strong>, para saber para quién es la guía.</li>
+      </ul>
+      <p class="fine">
+        Solo pedimos la idea: no hace falta que escribas la guía ni que copies información de otras
+        páginas. Así todo lo que publicamos coincide con lo que de verdad pasa en el servidor.
+      </p>
+    </section>
+
+    <section class="panel reveal" aria-labelledby="despues-titulo">
+      <h2 id="despues-titulo">Qué pasa después</h2>
+      <ol class="flow">
+        <li>Revisamos las ideas y elegimos las más pedidas.</li>
+        <li>La guía se publica como <strong>Sin verificar</strong> mientras se prueba.</li>
+        <li>Cuando alguien la sigue completa en Trefus y funciona, pasa a <strong>Verificado</strong>.</li>
+      </ol>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .suggest {
+    max-width: 780px;
+  }
+  .panel {
+    margin-top: 1.1rem;
+  }
+  h2 {
+    margin: 0 0 0.5rem;
+    color: var(--gold);
+  }
+  p {
+    margin: 0 0 0.8rem;
+  }
+  .cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem 1.25rem;
+    align-items: flex-start;
+    border-color: var(--border-strong);
+  }
+  .cta > div {
+    flex: 1 1 260px;
+  }
+  .cta__icon {
+    width: 56px;
+    height: 56px;
+    flex: none;
+    filter: drop-shadow(0 3px 0 rgb(0 0 0 / 0.4));
+  }
+  .is-soon {
+    cursor: default;
+    opacity: 0.75;
+  }
+  .is-soon:hover,
+  .is-soon:active {
+    transform: none;
+  }
+  .tips,
+  .flow {
+    margin: 0 0 0.8rem;
+    padding-left: 1.3rem;
+  }
+  .tips li + li,
+  .flow li + li {
+    margin-top: 0.35rem;
+  }
+  .fine {
+    color: var(--text-soft);
+    font-size: 0.95rem;
+    margin: 0;
+  }
+</style>

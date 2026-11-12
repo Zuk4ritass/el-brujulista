@@ -36,7 +36,8 @@ const verification = z
 
 const guias = defineCollection({
   loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/guias' }),
-  schema: z
+  schema: ({ image }) =>
+    z
     .object({
       title: z.string().min(1),
       slug: z.string().regex(kebab, 'El slug debe ser kebab-case'),
@@ -47,6 +48,12 @@ const guias = defineCollection({
       category: z.enum(CATEGORIES),
       /** true = guía de ejemplo, no es contenido real del juego. */
       example: z.boolean().default(false),
+      /** Palabras extra para el buscador: apodos, abreviaturas (ej: FG, Frigost). */
+      tags: z.array(z.string()).default([]),
+      /** true = aparece en grande en la portada. Si ninguna lo tiene, se usa la primera guía real. */
+      featured: z.boolean().default(false),
+      /** Imagen de portada opcional (ruta relativa al .md). Sin ella se genera una automáticamente. */
+      cover: image().optional(),
       requirements: z.array(z.string()).default([]),
       steps: z.array(step).min(1),
       knownBugs: z.array(knownBug).default([]),

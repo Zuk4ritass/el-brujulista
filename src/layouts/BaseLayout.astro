@@ -14,7 +14,7 @@ const path = Astro.url.pathname;
 const nav = [
   { href: '/', label: 'Inicio', match: (p: string) => p === '/' },
   { href: '/guias/', label: 'Guías', match: (p: string) => p.startsWith('/guias') },
-  { href: '/contribuir/', label: 'Contribuir', match: (p: string) => p.startsWith('/contribuir') },
+  { href: '/sugerir/', label: 'Sugerir', match: (p: string) => p.startsWith('/sugerir') },
 ];
 ---
 
@@ -50,6 +50,14 @@ const nav = [
                 </li>
               ))
             }
+            <li>
+              <a class="nav-search" href="/guias/?buscar" aria-label="Buscar guías">
+                <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                  <circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2.6"></circle>
+                  <path d="M15.5 15.5L21 21" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"></path>
+                </svg>
+              </a>
+            </li>
           </ul>
         </nav>
       </div>
@@ -69,7 +77,7 @@ const nav = [
         <p class="site-footer__note">
           La información de las guías puede diferir de Dofus 2.x y puede quedar desactualizada. Revisa
           siempre el estado de verificación.
-          <a href="/contribuir/">¿Encontraste un error?</a>
+          <a href="/sugerir/">¿Falta una guía? Sugiérela</a>
         </p>
       </div>
     </footer>
@@ -167,6 +175,10 @@ const nav = [
   nav a:hover {
     color: var(--text);
     background: rgb(255 255 255 / 0.06);
+  }
+  .nav-search {
+    display: inline-flex !important;
+    align-items: center;
   }
   nav a[aria-current='page'] {
     color: #fff8ec;
