@@ -1,0 +1,254 @@
+---
+// Herramienta privada para alinear las coordenadas del juego con tu imagen del mapa.
+// Solo funciona en tu PC (`npm run dev`): en un build de producción la imagen no existe.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { MAPA } from '../data/mapa';
+
+const dev = import.meta.env.DEV;
+---
+
+<BaseLayout title="Calibrar mapa" description="Herramienta privada para alinear el mapa.">
+  <div class="container page cal">
+    <h1 class="page-title">Calibrar <span class="marker">mapa</span></h1>
+    {
+      !dev ? (
+        <p class="page-lead">Esta herramienta solo funciona en tu PC con <code>npm run dev</code>.</p>
+      ) : (
+        <>
+          <ol class="cal__steps">
+            <li>Busca en el mapa una casilla cuya coordenada conozcas del juego (ej. el portal de Astrub, <code>4, -19</code>) y haz clic justo en su centro.</li>
+            <li>Escribe su coordenada y pulsa <strong>Guardar punto</strong>.</li>
+            <li>Repite con otra casilla <strong>lejana</strong> (mientras más lejos, más exacto).</li>
+            <li>Copia la línea que aparece abajo y pégala en <code>src/data/mapa.ts</code> (o pásamela).</li>
+          </ol>
+
+          <div class="cal__bar panel">
+            <label>
+              Zoom
+              <select data-zoom>
+                <option value="1">100 %</option>
+                <option value="2" selected>200 %</option>
+                <option value="3">300 %</option>
+                <option value="4">400 %</option>
+              </select>
+            </label>
+            <span class="cal__hover" data-hover aria-live="polite">Pasa el mouse por el mapa</span>
+          </div>
+
+          <div class="cal__viewport" data-viewport>
+            <div class="cal__stage" data-stage>
+              <img src={MAPA.imagen} alt="Tu mapa del mundo" data-img draggable="false" />
+              <svg class="cal__marks" data-marks aria-hidden="true"></svg>
+            </div>
+          </div>
+
+          <form class="cal__form panel" data-form hidden>
+            <p>
+              Píxel elegido: <code data-picked></code>. ¿Qué coordenada es?
+            </p>
+            <label>x <input type="number" step="1" required data-x /></label>
+            <label>y <input type="number" step="1" required data-y /></label>
+            <button class="btn" type="submit">Guardar punto</button>
+            <button class="btn btn--ghost" type="button" data-cancel>Cancelar</button>
+          </form>
+
+          <section class="panel cal__out">
+            <h2>Puntos guardados</h2>
+            <ul data-list></ul>
+            <pre data-snippet hidden></pre>
+            <p class="cal__actions">
+              <button class="btn" type="button" data-copy hidden>Copiar línea</button>
+              <button class="btn btn--danger" type="button" data-clear>Borrar puntos</button>
+            </p>
+          </section>
+        </>
+      )
+    }
+  </div>
+</BaseLayout>
+
+<script define:vars={{ initial: MAPA.puntos }}>
+  // (define:vars hace que este script sea inline; es una herramienta local, no hace falta empaquetarlo)
+  const $ = (s) => document.querySelector(s);
+  const img = $('[data-img]');
+  if (img) {
+    const KEY = 'trefus:calibracion';
+    const stage = $('[data-stage]');
+    const marks = $('[data-marks]');
+    const zoomSel = $('[data-zoom]');
+    const hover = $('[data-hover]');
+    const form = $('[data-form]');
+    const picked = $('[data-picked]');
+    const list = $('[data-list]');
+    const snippet = $('[data-snippet]');
+    const copyBtn = $('[data-copy]');
+    let points = initial.length ? initial : [];
+    try {
+      const saved = JSON.parse(localStorage.getItem(KEY) || 'null');
+      if (Array.isArray(saved) && saved.length) points = saved;
+    } catch {}
+    let pending = null;
+
+    const save = () => {
+      try {
+        localStorage.setItem(KEY, JSON.stringify(points));
+      } catch {}
+    };
+    const zoom = () => Number(zoomSel.value);
+    const layout = () => {
+      const z = zoom();
+      stage.style.width = `${img.naturalWidth * z}px`;
+      stage.style.height = `${img.naturalHeight * z}px`;
+      marks.setAttribute('viewBox', `0 0 ${img.naturalWidth} ${img.naturalHeight}`);
+      drawMarks();
+    };
+    const toImg = (e) => {
+      const r = stage.getBoundingClientRect();
+      return { px: Math.round(((e.clientX - r.left) / zoom()) * 10) / 10, py: Math.round(((e.clientY - r.top) / zoom()) * 10) / 10 };
+    };
+    const cal = () => {
+      if (points.length < 2) return null;
+      const [a, b] = points;
+      if (a.x === b.x || a.y === b.y) return null;
+      const sx = (b.px - a.px) / (b.x - a.x);
+      const sy = (b.py - a.py) / (b.y - a.y);
+      return { a, sx, sy };
+    };
+    const drawMarks = () => {
+      const c = cal();
+      let html = '';
+      if (c) {
+        // Rejilla de prueba alrededor de los puntos: si cae sobre las casillas del mapa, la calibración es buena.
+        const xs = points.map((p) => p.x), ys = points.map((p) => p.y);
+        for (let x = Math.min(...xs) - 6; x <= Math.max(...xs) + 6; x++)
+          for (let y = Math.min(...ys) - 6; y <= Math.max(...ys) + 6; y++) {
+            const cx = c.a.px + (x - c.a.x) * c.sx, cy = c.a.py + (y - c.a.y) * c.sy;
+            html += `<rect x="${cx - Math.abs(c.sx) / 2}" y="${cy - Math.abs(c.sy) / 2}" width="${Math.abs(c.sx)}" height="${Math.abs(c.sy)}" fill="none" stroke="#2b1a0e" stroke-opacity=".35" stroke-width=".5"/>`;
+          }
+      }
+      for (const p of [...points, ...(pending ? [pending] : [])])
+        html += `<circle cx="${p.px}" cy="${p.py}" r="3" fill="#e2574c" stroke="#fff" stroke-width="1"/>`;
+      marks.innerHTML = html;
+    };
+    const renderList = () => {
+      list.innerHTML = points.length
+        ? points.map((p, i) => `<li>Punto ${i + 1}: píxel (${p.px}, ${p.py}) = <strong>[${p.x}, ${p.y}]</strong></li>`).join('')
+        : '<li>Todavía no hay puntos.</li>';
+      const c = cal();
+      snippet.hidden = copyBtn.hidden = !c;
+      if (c) snippet.textContent = `puntos: ${JSON.stringify(points.slice(0, 2).map(({ px, py, x, y }) => ({ px, py, x, y })))},`;
+      drawMarks();
+    };
+
+    stage.addEventListener('mousemove', (e) => {
+      const p = toImg(e);
+      const c = cal();
+      hover.textContent = c
+        ? `Casilla bajo el mouse: [${Math.round(c.a.x + (p.px - c.a.px) / c.sx)}, ${Math.round(c.a.y + (p.py - c.a.py) / c.sy)}]`
+        : `Píxel (${p.px}, ${p.py})`;
+    });
+    stage.addEventListener('click', (e) => {
+      if (points.length >= 2) points = [];
+      pending = toImg(e);
+      picked.textContent = `(${pending.px}, ${pending.py})`;
+      form.hidden = false;
+      form.querySelector('[data-x]').focus();
+      renderList();
+    });
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const x = Number(form.querySelector('[data-x]').value);
+      const y = Number(form.querySelector('[data-y]').value);
+      points.push({ ...pending, x, y });
+      pending = null;
+      form.reset();
+      form.hidden = true;
+      save();
+      renderList();
+    });
+    $('[data-cancel]').addEventListener('click', () => {
+      pending = null;
+      form.hidden = true;
+      drawMarks();
+    });
+    $('[data-clear]').addEventListener('click', () => {
+      points = [];
+      save();
+      renderList();
+    });
+    copyBtn.addEventListener('click', () => navigator.clipboard?.writeText(snippet.textContent));
+    zoomSel.addEventListener('change', layout);
+    if (img.complete) layout();
+    else img.addEventListener('load', layout);
+    renderList();
+  }
+</script>
+
+<style>
+  .cal {
+    max-width: 1100px;
+  }
+  .cal__steps {
+    padding-left: 1.3rem;
+  }
+  .cal__bar,
+  .cal__form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem 1rem;
+    margin: 1rem 0;
+  }
+  .cal__form p {
+    flex-basis: 100%;
+    margin: 0;
+  }
+  .cal__form input,
+  .cal__bar select {
+    width: 6rem;
+    min-height: 40px;
+    margin-left: 0.3rem;
+    padding: 0.3rem 0.5rem;
+    border: var(--line);
+    border-radius: 8px;
+    font: inherit;
+  }
+  .cal__hover {
+    font-family: ui-monospace, Consolas, monospace;
+    font-weight: 700;
+  }
+  .cal__viewport {
+    height: 70vh;
+    overflow: auto;
+    border: var(--line);
+    border-radius: 12px;
+    background: #7f7f7f;
+  }
+  .cal__stage {
+    position: relative;
+    cursor: crosshair;
+  }
+  .cal__stage img,
+  .cal__marks {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
+    user-select: none;
+  }
+  .cal__out {
+    margin-top: 1rem;
+  }
+  .cal__out pre {
+    padding: 0.6rem 0.8rem;
+    border-radius: 8px;
+    background: var(--ink);
+    color: var(--yellow);
+    overflow-x: auto;
+  }
+  .cal__actions {
+    display: flex;
+    gap: 0.6rem;
+  }
+</style>

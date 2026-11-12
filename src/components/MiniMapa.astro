@@ -3,6 +3,7 @@
 // que Manuel registró en src/data/zonas.ts. No usa imágenes del juego.
 // Las casillas sin zona registrada se ven como papel en blanco (no inventamos geografía).
 import { ZONAS, type Terreno, type Zona } from '../data/zonas';
+import { MAPA, calibracion } from '../data/mapa';
 
 interface Props {
   x: number;
@@ -60,6 +61,20 @@ const labels = ZONAS.map((z) => {
 }).filter(Boolean) as { text: string; lx: number; ly: number }[];
 
 const here = zoneAt(x, y);
+
+// Fondo: tu imagen del mapa (privada), solo en tu PC y solo si ya está calibrada en /calibrar.
+const cal = import.meta.env.DEV ? calibracion(MAPA) : null;
+const bg = cal
+  ? (() => {
+      const kx = C / cal.sx;
+      const ky = C / cal.sy;
+      const c = cal.centro(x, y);
+      const gx = px(x) + C / 2;
+      const gy = py(y) + C / 2;
+      return { href: MAPA.imagen, x: gx - c.px * kx, y: gy - c.py * ky, w: MAPA.ancho * kx, h: MAPA.alto * ky };
+    })()
+  : null;
+const clipId = `mm-${x}-${y}`.replace(/-/g, '_');
 const xs = Array.from({ length: cols }, (_, i) => x - RX + i);
 const ys = Array.from({ length: rows }, (_, i) => y - RY + i);
 ---
@@ -70,8 +85,23 @@ const ys = Array.from({ length: rows }, (_, i) => y - RY + i);
       {xs.map((cx) => <text x={px(cx) + C / 2} y={T - 6} font-weight={cx === x ? 900 : 400} fill={cx === x ? '#2b1a0e' : undefined}>{cx}</text>)}
       {ys.map((cy) => <text x={L - 15} y={py(cy) + C / 2 + 3.5} font-weight={cy === y ? 900 : 400} fill={cy === y ? '#2b1a0e' : undefined}>{cy}</text>)}
     </g>
-    <g stroke="#2b1a0e" stroke-opacity=".22" stroke-width="1">
-      {cells.map((c) => <rect x={px(c.cx)} y={py(c.cy)} width={C} height={C} fill={c.fill} />)}
+    {
+      bg && (
+        <>
+          <defs>
+            <clipPath id={clipId}>
+              <rect x={L} y={T} width={cols * C} height={rows * C} rx="4" />
+            </clipPath>
+          </defs>
+          <rect x={L} y={T} width={cols * C} height={rows * C} fill="#7f7f7f" />
+          <image href={bg.href} x={bg.x} y={bg.y} width={bg.w} height={bg.h} clip-path={`url(#${clipId})`} preserveAspectRatio="none" style="image-rendering: pixelated" />
+        </>
+      )
+    }
+    <g stroke={bg ? '#fffaf0' : '#2b1a0e'} stroke-opacity={bg ? '.35' : '.22'} stroke-width="1">
+      {cells.map((c) => (
+        <rect x={px(c.cx)} y={py(c.cy)} width={C} height={C} fill={bg ? 'none' : c.fill} />
+      ))}
     </g>
     <rect x={L} y={T} width={cols * C} height={rows * C} fill="none" stroke="#2b1a0e" stroke-width="3" rx="4"></rect>
     {
