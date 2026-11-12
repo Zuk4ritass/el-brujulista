@@ -32,54 +32,45 @@ const icon = { verificado: '✓', 'sin-verificar': '?', desactualizado: '!' }[st
     display: inline-flex;
     align-items: center;
     gap: 0.4em;
-    padding: 0.2em 0.65em 0.2em 0.3em;
+    padding: 0.1em 0.65em 0.1em 0.3em;
+    border: 2px solid var(--ink);
     border-radius: 999px;
     font-size: 0.85rem;
-    font-weight: 700;
-    line-height: 1.4;
+    font-weight: 800;
+    line-height: 1.5;
     white-space: nowrap;
   }
   .badge__icon {
     display: inline-grid;
     place-items: center;
-    width: 1.35em;
-    height: 1.35em;
+    width: 1.4em;
+    height: 1.4em;
+    border: 2px solid var(--ink);
     border-radius: 50%;
-    font-size: 0.85em;
+    background: var(--card);
+    font-size: 0.8em;
+    font-weight: 900;
   }
   .badge__meta {
-    font-weight: 400;
+    font-weight: 600;
   }
-
-  /* Verificado: sólido, verde, check */
   .badge--verificado {
-    background: #1f6b3a;
-    color: #f2fff5;
-    border: 2px solid #1f6b3a;
+    background: var(--green);
   }
-  .badge--verificado .badge__icon {
-    background: #f2fff5;
-    color: #1f6b3a;
-  }
-
-  /* Sin verificar: fondo transparente, borde punteado ámbar, signo de pregunta */
   .badge--sin-verificar {
-    background: transparent;
-    color: #ffd27a;
-    border: 2px dashed #ffd27a;
+    background: var(--card);
+    border-style: dashed;
+    color: var(--ink-soft);
   }
   .badge--sin-verificar .badge__icon {
-    border: 2px dashed currentColor;
+    border-style: dashed;
+    border-color: currentColor;
   }
-
-  /* Desactualizado: rayado, rojo, exclamación */
   .badge--desactualizado {
-    background: repeating-linear-gradient(-45deg, #5c1a1a 0 6px, #7a2222 6px 12px);
-    color: #ffe3e0;
-    border: 2px solid #ff8a80;
+    background: var(--red);
+    color: #fff;
   }
   .badge--desactualizado .badge__icon {
-    background: #ff8a80;
-    color: #3a0d0d;
+    color: var(--ink);
   }
 </style>

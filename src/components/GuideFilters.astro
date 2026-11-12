@@ -47,7 +47,7 @@ const { categories } = Astro.props;
     gap: 0.3rem;
   }
   label {
-    font-weight: 700;
+    font-weight: 800;
     font-size: 0.9rem;
   }
   select,
@@ -55,13 +55,20 @@ const { categories } = Astro.props;
     min-height: 44px;
     padding: 0.4rem 0.6rem;
     font: inherit;
-    color: inherit;
-    background: var(--surface, #241b14);
-    border: 1px solid var(--border, #6b5640);
-    border-radius: 8px;
+    font-weight: 700;
+    color: var(--ink);
+    background: var(--card);
+    border: var(--line);
+    border-radius: 10px;
+    box-shadow: 2px 2px 0 var(--ink);
   }
   .filters__reset {
+    font-family: var(--font-display);
+    font-weight: 400;
     cursor: pointer;
+  }
+  .filters__reset:hover {
+    background: var(--yellow);
   }
   select:focus-visible,
   .filters__reset:focus-visible {

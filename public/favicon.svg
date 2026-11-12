@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <!-- Pergamino enrollado con un check: ícono propio del sitio -->
-  <rect x="10" y="10" width="44" height="44" rx="6" fill="#ecdcb4" stroke="#6e2c09" stroke-width="4"/>
-  <rect x="6" y="6" width="52" height="10" rx="5" fill="#b8501a" stroke="#6e2c09" stroke-width="3"/>
-  <rect x="6" y="48" width="52" height="10" rx="5" fill="#b8501a" stroke="#6e2c09" stroke-width="3"/>
-  <path d="M20 32l8 8 16-16" fill="none" stroke="#2f4410" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="10" y="10" width="44" height="44" rx="6" fill="#fffaf0" stroke="#2b1a0e" stroke-width="4"/>
+  <rect x="6" y="6" width="52" height="11" rx="5.5" fill="#f08a3c" stroke="#2b1a0e" stroke-width="4"/>
+  <rect x="6" y="47" width="52" height="11" rx="5.5" fill="#f08a3c" stroke="#2b1a0e" stroke-width="4"/>
+  <path d="M21 32l8 8 15-15" fill="none" stroke="#4e7a1c" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

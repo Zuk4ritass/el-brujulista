@@ -10,16 +10,16 @@ const discord = SITE.discordUrl;
   description="¿Qué guía te gustaría encontrar? Propón ideas de guías nuevas para Trefus."
 >
   <div class="container page suggest">
-    <h1 class="page-title">Sugiere una guía</h1>
+    <h1 class="page-title">Sugiere una <span class="marker">guía</span></h1>
     <p class="page-lead">
       ¿Te trabaste en algo y no encontraste ayuda? Cuéntanos qué guía te gustaría ver. Nosotros la
       escribimos y la comprobamos jugando en Trefus antes de publicarla.
     </p>
 
-    <div class="cta panel reveal">
+    <div class="cta panel">
       <svg class="cta__icon" viewBox="0 0 48 48" aria-hidden="true">
-        <path d="M24 6a14 14 0 0 0-8 25.5c2 1.6 3 3.8 3 6.5h10c0-2.7 1-4.9 3-6.5A14 14 0 0 0 24 6z" fill="#f2c14e" stroke="#6e2c09" stroke-width="3" stroke-linejoin="round"></path>
-        <path d="M19 42h10" stroke="#6e2c09" stroke-width="3" stroke-linecap="round"></path>
+        <path d="M24 6a14 14 0 0 0-8 25.5c2 1.6 3 3.8 3 6.5h10c0-2.7 1-4.9 3-6.5A14 14 0 0 0 24 6z" fill="#ffd23f" stroke="#2b1a0e" stroke-width="3" stroke-linejoin="round"></path>
+        <path d="M19 42h10" stroke="#2b1a0e" stroke-width="3" stroke-linecap="round"></path>
       </svg>
       <div>
         <h2>Deja tu idea en Discord</h2>
@@ -37,7 +37,7 @@ const discord = SITE.discordUrl;
       </div>
     </div>
 
-    <section class="panel reveal" aria-labelledby="como-titulo">
+    <section class="panel" aria-labelledby="como-titulo">
       <h2 id="como-titulo">Cómo escribir una buena sugerencia</h2>
       <ul class="tips">
         <li><strong>Qué quieres lograr:</strong> por ejemplo, llegar a un lugar, terminar una quest o pasar un dungeon.</li>
@@ -50,7 +50,7 @@ const discord = SITE.discordUrl;
       </p>
     </section>
 
-    <section class="panel reveal" aria-labelledby="despues-titulo">
+    <section class="panel" aria-labelledby="despues-titulo">
       <h2 id="despues-titulo">Qué pasa después</h2>
       <ol class="flow">
         <li>Revisamos las ideas y elegimos las más pedidas.</li>
@@ -66,11 +66,10 @@ const discord = SITE.discordUrl;
     max-width: 780px;
   }
   .panel {
-    margin-top: 1.1rem;
+    margin-top: 1.4rem;
   }
   h2 {
     margin: 0 0 0.5rem;
-    color: var(--gold);
   }
   p {
     margin: 0 0 0.8rem;
@@ -80,7 +79,8 @@ const discord = SITE.discordUrl;
     flex-wrap: wrap;
     gap: 1rem 1.25rem;
     align-items: flex-start;
-    border-color: var(--border-strong);
+    background: #fff3c4;
+    rotate: -0.6deg;
   }
   .cta > div {
     flex: 1 1 260px;
@@ -89,7 +89,7 @@ const discord = SITE.discordUrl;
     width: 56px;
     height: 56px;
     flex: none;
-    filter: drop-shadow(0 3px 0 rgb(0 0 0 / 0.4));
+    rotate: -8deg;
   }
   .is-soon {
     cursor: default;
@@ -109,7 +109,7 @@ const discord = SITE.discordUrl;
     margin-top: 0.35rem;
   }
   .fine {
-    color: var(--text-soft);
+    color: var(--ink-soft);
     font-size: 0.95rem;
     margin: 0;
   }

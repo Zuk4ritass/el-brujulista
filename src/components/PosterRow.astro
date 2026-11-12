@@ -35,9 +35,6 @@ const { title, id, hidden = false } = Astro.props;
   }
   .row__title {
     margin: 0;
-    font-size: clamp(1.2rem, 3vw, 1.5rem);
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
   }
   .row__nav {
     display: none;
@@ -52,15 +49,17 @@ const { title, id, hidden = false } = Astro.props;
     width: 2.4rem;
     height: 2.4rem;
     border-radius: 50%;
-    border: 2px solid var(--border);
-    background: var(--surface);
-    color: var(--text);
+    border: var(--line);
+    background: var(--card);
+    color: var(--ink);
     font-size: 1.5rem;
+    font-weight: 900;
     line-height: 1;
     cursor: pointer;
+    box-shadow: 2px 2px 0 var(--ink);
   }
-  .row__btn:hover {
-    border-color: var(--gold);
+  .row__btn:hover:not(:disabled) {
+    background: var(--yellow);
   }
   .row__btn:disabled {
     opacity: 0.3;
@@ -68,9 +67,9 @@ const { title, id, hidden = false } = Astro.props;
   }
   .row__track {
     display: flex;
-    gap: 0.9rem;
+    gap: 1.25rem;
     margin: 0.75rem calc(var(--gutter) * -1) 0;
-    padding: 0.75rem var(--gutter) 1.25rem;
+    padding: 0.75rem var(--gutter) 1.5rem;
     overflow-x: auto;
     overscroll-behavior-x: contain;
     scroll-snap-type: x mandatory;

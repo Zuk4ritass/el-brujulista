@@ -5,10 +5,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 <BaseLayout title="Página no encontrada">
   <div class="container page lost">
     <svg class="lost__map" viewBox="0 0 120 90" aria-hidden="true">
-      <path d="M8 14l32-8 40 10 32-8v70l-32 8-40-10-32 8z" fill="#ecdcb4" stroke="#6e2c09" stroke-width="3" stroke-linejoin="round"></path>
-      <path d="M40 6v70M80 16v70" stroke="#b89b62" stroke-width="2"></path>
-      <path d="M22 60c10-6 18 4 28-4s16-18 30-10" fill="none" stroke="#b8501a" stroke-width="3" stroke-dasharray="5 5" stroke-linecap="round"></path>
-      <path d="M84 36l10 10M94 36L84 46" stroke="#6e2c09" stroke-width="4" stroke-linecap="round"></path>
+      <path d="M8 14l32-8 40 10 32-8v70l-32 8-40-10-32 8z" fill="#fffaf0" stroke="#2b1a0e" stroke-width="3" stroke-linejoin="round"></path>
+      <path d="M40 6v70M80 16v70" stroke="#2b1a0e" stroke-opacity=".3" stroke-width="2"></path>
+      <path d="M22 60c10-6 18 4 28-4s16-18 30-10" fill="none" stroke="#f08a3c" stroke-width="3" stroke-dasharray="5 5" stroke-linecap="round"></path>
+      <path d="M84 36l10 10M94 36L84 46" stroke="#e2574c" stroke-width="4" stroke-linecap="round"></path>
     </svg>
     <h1 class="page-title">Te perdiste del mapa</h1>
     <p class="page-lead">Esta página no existe o se movió. Vuelve al listado y elige otra guía.</p>
@@ -22,15 +22,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     text-align: center;
     padding-block: 3rem;
   }
-  .lost .page-title::after {
-    margin-inline: auto;
-  }
   .lost .page-lead {
     margin-inline: auto;
   }
   .lost__map {
     width: 160px;
-    filter: drop-shadow(0 6px 0 rgb(0 0 0 / 0.4));
+    filter: drop-shadow(5px 5px 0 #2b1a0e);
     animation: sway 4s ease-in-out infinite;
   }
   @keyframes sway {

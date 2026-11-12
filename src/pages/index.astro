@@ -1,301 +1,204 @@
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import HeroScene from '../components/HeroScene.astro';
 import GuidePoster from '../components/GuidePoster.astro';
 import PosterRow from '../components/PosterRow.astro';
 import SearchBox from '../components/SearchBox.astro';
-import { LEVEL_RANGES, sortGuides, type Category } from '../lib/guides';
+import { CATEGORY_LABELS, sortGuides, type Category } from '../lib/guides';
 
 const guias = sortGuides(await getCollection('guias'));
-const featuredList = guias.filter((g) => g.data.featured);
-const ROW_TITLES: Record<Category, string> = {
-  quest: 'Quests',
-  dungeon: 'Dungeons',
-  ruta: 'Rutas y viajes',
-  tip: 'Tips',
-};
-const byCategory = (Object.keys(ROW_TITLES) as Category[])
-  .map((c) => ({ c, items: guias.filter((g) => g.data.category === c) }))
-  .filter((r) => r.items.length > 0);
-const categories = byCategory.map((r) => r.c);
-const ICONS: Record<Category, string> = { quest: '📜', dungeon: '🗝️', ruta: '🧭', tip: '💡' };
+// Solo categorías que tienen guías, para no ofrecer filtros vacíos.
+const categories = [...new Set(guias.map((g) => g.data.category))] as Category[];
 ---
 
 <BaseLayout title="Inicio">
-  <!-- Héroe: el buscador es lo principal -->
-  <section class="hero" aria-labelledby="hero-title">
-    <HeroScene />
-    <div class="hero__scrim" aria-hidden="true"></div>
-    <div class="container hero__content">
-      <p class="ribbon hero__eyebrow">Guías de Trefus</p>
-      <h1 id="hero-title" class="hero__title">¿Qué quieres hacer hoy?</h1>
+  <section class="hero container" aria-labelledby="hero-title">
+    <div class="hero__text">
+      <h1 id="hero-title" class="hero__title">
+        Guías de <span class="marker">Trefus</span>, paso a paso
+      </h1>
+      <p class="hero__lead">Cortas, claras y probadas jugando. ¿Qué necesitas?</p>
       <div class="hero__search">
-        <SearchBox id="buscar-inicio" size="big" suggest />
+        <SearchBox id="buscar-inicio" size="big" suggest placeholder="Ej: goloson, Frigost, dungeon…" />
       </div>
-
-      <!-- Intereses: filtran al instante, solos o junto con la búsqueda -->
-      <div class="interests" data-interests>
-        <div class="interests__group" role="group" aria-label="Tipo de guía">
-          {
-            categories.map((c) => (
-              <button type="button" class="interest" data-filter="cat" data-value={c} aria-pressed="false">
-                <span aria-hidden="true">{ICONS[c]}</span> {ROW_TITLES[c]}
-              </button>
-            ))
-          }
-        </div>
-        <div class="interests__group" role="group" aria-label="Rango de nivel">
-          {
-            LEVEL_RANGES.map((r) => (
-              <button type="button" class="interest interest--level" data-filter="lvl" data-value={r.value} aria-pressed="false">
-                Nv. {r.min}–{r.max}
-              </button>
-            ))
-          }
-        </div>
-      </div>
-
-      <p class="hero__note">
-        Guías no oficiales para el servidor <strong>Trefus</strong>. El contenido puede diferir de Dofus 2.x.
-      </p>
     </div>
+
+    <!-- Garabato propio: mapa con camino punteado -->
+    <svg class="hero__doodle" viewBox="0 0 220 180" aria-hidden="true">
+      <g fill="none" stroke="#2b1a0e" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 40l58-18 64 18 62-18v118l-62 18-64-18-58 18z" fill="#fffaf0"></path>
+        <path d="M76 22v118M140 40v118" stroke-width="3" stroke-opacity=".35"></path>
+        <path class="hero__trail" d="M40 128c22-14 38 6 58-8s22-46 56-36" stroke="#f08a3c" stroke-dasharray="8 10"></path>
+        <path d="M160 70l16 16M176 70l-16 16" stroke="#e2574c" stroke-width="7"></path>
+        <circle cx="40" cy="128" r="7" fill="#8cc63f"></circle>
+      </g>
+    </svg>
   </section>
 
   <div class="container">
-    <!-- Resultados de búsqueda (reemplazan las filas mientras hay texto en el buscador) -->
-    <section class="results" aria-labelledby="resultados-titulo" data-results hidden>
-      <h2 id="resultados-titulo" class="results__title" data-results-title aria-live="polite">Resultados</h2>
-      <ul class="poster-grid" data-results-grid>
-        {guias.map((g) => <GuidePoster guia={g} />)}
-      </ul>
-      <div class="results__empty panel" data-results-empty hidden>
-        <p><strong>No encontramos guías con eso todavía.</strong></p>
-        <p>¿Te gustaría que exista? <a href="/sugerir/">Sugiere esta guía</a> y la tendremos en cuenta.</p>
+    <PosterRow title="Continúa donde quedaste" id="fila-continuar" hidden>
+      {guias.map((g) => <GuidePoster guia={g} size="row" />)}
+    </PosterRow>
+
+    <section class="all" aria-labelledby="todas-titulo">
+      <div class="all__head">
+        <h2 id="todas-titulo" class="all__title">Todas las guías</h2>
+        <div class="tabs" role="group" aria-label="Filtrar por tipo">
+          <button type="button" class="tab" data-cat="" aria-pressed="true">Todas</button>
+          {
+            categories.map((c) => (
+              <button type="button" class:list={['tab', `tab--${c}`]} data-cat={c} aria-pressed="false">
+                {CATEGORY_LABELS[c]}
+              </button>
+            ))
+          }
+        </div>
       </div>
-    </section>
-
-    <div data-rows>
-      <PosterRow title="Continúa donde quedaste" id="fila-continuar" hidden>
-        {guias.map((g) => <GuidePoster guia={g} size="row" />)}
-      </PosterRow>
-
-      {
-        featuredList.length > 0 && (
-          <PosterRow title="Destacadas" id="fila-destacadas">
-            {featuredList.map((g) => (
-              <GuidePoster guia={g} size="row" eager />
-            ))}
-          </PosterRow>
-        )
-      }
-
-      {
-        byCategory.map(({ c, items }, i) => (
-          <PosterRow title={ROW_TITLES[c]} id={`fila-${c}`}>
-            {items.map((g) => (
-              <GuidePoster guia={g} size="row" eager={i === 0} />
-            ))}
-          </PosterRow>
-        ))
-      }
-
-      <p class="legend">
-        <span><b class="dot dot--ok">✓</b> Probada en Trefus</span>
-        <span><b class="dot dot--warn">?</b> Sin probar aún</span>
-        <span><b class="dot dot--bad">!</b> Desactualizada</span>
-        <span><span class="bar" aria-hidden="true"></span> Tu progreso</span>
+      <ul class="grid" data-grid>
+        {guias.map((g, i) => <GuidePoster guia={g} eager={i < 4} />)}
+      </ul>
+      <p class="all__more">
+        ¿No está lo que buscas? <a href="/sugerir/">Pídenos esa guía</a>
       </p>
-    </div>
+    </section>
   </div>
 </BaseLayout>
 
 <style>
-  /* ---------- Héroe con buscador ---------- */
+  /* ---------- Héroe ---------- */
   .hero {
     position: relative;
-    z-index: 5; /* el desplegable de sugerencias debe quedar encima de las filas */
+    z-index: 5; /* el desplegable de sugerencias debe quedar encima de las tarjetas */
     display: grid;
     align-items: center;
-    min-height: clamp(440px, 66vh, 600px);
-    margin-top: -3px;
-    /* sin overflow: hidden, para que el desplegable pueda salir del héroe (la escena recorta sola) */
+    gap: 1rem 2rem;
+    padding-block: clamp(2rem, 7vw, 4rem) clamp(1.5rem, 5vw, 2.5rem);
   }
-  .hero__scrim {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    background:
-      radial-gradient(ellipse 70% 60% at 50% 45%, rgb(10 8 20 / 0.6), transparent 75%),
-      linear-gradient(0deg, var(--bg) 0%, transparent 30%);
-    pointer-events: none;
-  }
-  .hero__content {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding-block: 3rem 3.5rem;
-    text-align: center;
-  }
-  .hero__eyebrow {
-    font-size: 0.85rem;
-    animation: unfurl 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-  }
-  @keyframes unfurl {
-    from {
-      transform: scaleX(0);
-      opacity: 0;
+  @media (min-width: 820px) {
+    .hero {
+      grid-template-columns: 1fr 240px;
     }
   }
   .hero__title {
-    margin: 0.8rem 0 1.4rem;
-    font-size: clamp(2.2rem, 7vw, 4rem);
-    line-height: 1;
-    color: #fff8ec;
-    text-shadow: 0 4px 0 rgb(0 0 0 / 0.45), 0 10px 30px rgb(0 0 0 / 0.55);
-    animation: rise-in 0.8s 0.15s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    margin: 0;
+    font-size: clamp(2.4rem, 8vw, 4rem);
+    line-height: 1.02;
+  }
+  .hero__lead {
+    margin: 0.75rem 0 1.25rem;
+    font-size: 1.2rem;
+    color: var(--ink-soft);
   }
   .hero__search {
     position: relative;
-    z-index: 10; /* el desplegable debe tapar los chips de intereses */
+    z-index: 10;
+    max-width: 620px;
+  }
+  .hero__doodle {
+    display: none;
     width: 100%;
-    max-width: 680px;
-    animation: rise-in 0.7s 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    rotate: 6deg;
+    filter: drop-shadow(5px 5px 0 #2b1a0e);
+    animation: bob 4s ease-in-out infinite;
   }
-  .hero__note {
-    max-width: 52ch;
-    margin: 1.25rem 0 0;
-    font-size: 0.85rem;
-    color: #e6d8bd;
-    text-shadow: 0 2px 6px rgb(0 0 0 / 0.8);
+  @media (min-width: 820px) {
+    .hero__doodle {
+      display: block;
+    }
   }
-  @keyframes rise-in {
-    from {
-      opacity: 0;
-      transform: translateY(0.6em);
+  .hero__trail {
+    animation: march 1.4s linear infinite;
+  }
+  @keyframes bob {
+    50% {
+      translate: 0 -8px;
+      rotate: 3deg;
+    }
+  }
+  @keyframes march {
+    to {
+      stroke-dashoffset: -36;
     }
   }
 
-  /* ---------- Intereses ---------- */
-  .interests {
-    display: grid;
-    gap: 0.6rem;
-    justify-items: center;
-    margin-top: 1.1rem;
-    animation: rise-in 0.7s 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-  }
-  .interests__group {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.5rem;
-  }
-  .interest {
-    min-height: 40px;
-    padding: 0.35rem 1rem;
-    border: 2px solid rgb(243 230 204 / 0.35);
-    border-radius: 999px;
-    background: rgb(14 10 6 / 0.7);
-    color: var(--text);
-    font: 600 0.95rem/1 var(--font-body);
-    cursor: pointer;
-    backdrop-filter: blur(4px);
-    transition:
-      background 0.15s ease,
-      border-color 0.15s ease,
-      transform 0.15s ease;
-  }
-  .interest:hover {
-    border-color: var(--gold);
-    transform: translateY(-2px);
-  }
-  .interest--level {
-    font-size: 0.85rem;
-    min-height: 34px;
-    padding-inline: 0.8rem;
-  }
-  .interest[aria-pressed='true'] {
-    background: var(--gold);
-    border-color: var(--gold);
-    color: #2b1d12;
-    font-weight: 800;
-  }
-
-  /* ---------- Resultados ---------- */
-  .results {
+  /* ---------- Todas las guías ---------- */
+  .all {
     margin-top: 1.5rem;
   }
-  .results__title {
-    margin: 0 0 1rem;
-    font-size: 1.3rem;
-    text-transform: uppercase;
+  .all__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1rem;
+    margin-bottom: 1.1rem;
   }
-  .results__empty p {
-    margin: 0 0 0.4rem;
+  .all__title {
+    margin: 0;
   }
-  .poster-grid {
+  .tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .tab {
+    min-height: 40px;
+    padding: 0.3rem 0.95rem;
+    border: var(--line);
+    border-radius: 999px;
+    background: var(--card);
+    color: var(--ink);
+    font: 400 1rem/1 var(--font-display);
+    cursor: pointer;
+    box-shadow: 2px 2px 0 var(--ink);
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+  }
+  .tab:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0 var(--ink);
+  }
+  .tab[aria-pressed='true'] {
+    background: var(--yellow);
+    transform: translate(2px, 2px);
+    box-shadow: none;
+  }
+  .tab--quest[aria-pressed='true'] {
+    background: var(--purple);
+    color: #fff;
+  }
+  .tab--dungeon[aria-pressed='true'] {
+    background: var(--red);
+    color: #fff;
+  }
+  .tab--ruta[aria-pressed='true'] {
+    background: var(--teal);
+  }
+  .tab--tip[aria-pressed='true'] {
+    background: var(--green);
+  }
+
+  .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+    gap: 1.25rem;
     margin: 0;
     padding: 0;
   }
   @media (min-width: 720px) {
-    .poster-grid {
-      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    .grid {
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1.5rem;
     }
   }
-
-  /* ---------- Leyenda ---------- */
-  .legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem 1.25rem;
-    margin: 1.5rem 0 0;
-    font-size: 0.85rem;
-    color: var(--text-soft);
-  }
-  .legend span {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-  }
-  .dot {
-    display: inline-grid;
-    place-items: center;
-    width: 1.3rem;
-    height: 1.3rem;
-    border-radius: 50%;
-    font-size: 0.75rem;
-  }
-  .dot--ok {
-    background: #1f6b3a;
-    border: 2px solid #f2fff5;
-    color: #fff;
-  }
-  .dot--warn {
-    color: var(--warn);
-    border: 2px dashed var(--warn);
-  }
-  .dot--bad {
-    background: #5c1a1a;
-    color: #ffe3e0;
-    border: 2px solid var(--danger);
-  }
-  .bar {
-    display: inline-block;
-    width: 1.6rem;
-    height: 5px;
-    background: linear-gradient(90deg, var(--green) 60%, rgb(255 255 255 / 0.25) 60%);
+  .all__more {
+    margin: 2rem 0 0;
+    color: var(--ink-soft);
   }
 </style>
 
 <script>
   import { initSuggest } from '../lib/suggest-ui';
   import { loadProgress } from '../lib/progress';
-  import { CATEGORY_LABELS, LEVEL_RANGES, type Category } from '../lib/guides';
 
   // Fila "Continúa donde quedaste": solo guías empezadas y no terminadas
   const contRow = document.querySelector<HTMLElement>('#fila-continuar');
@@ -312,59 +215,18 @@ const ICONS: Record<Category, string> = { quest: '📜', dungeon: '🗝️', rut
     contRow.hidden = !any;
   }
 
-  // Buscador: solo sugerencias en desplegable; no toca las filas de abajo.
+  // Buscador: solo sugerencias en desplegable; no toca lo de abajo.
   const searchForm = document.querySelector<HTMLFormElement>('[data-search-form][data-suggest]');
   if (searchForm) initSuggest(searchForm);
 
-  // Intereses: si hay alguno activo, los resultados reemplazan las filas.
-  const results = document.querySelector<HTMLElement>('[data-results]')!;
-  const grid = document.querySelector<HTMLElement>('[data-results-grid]')!;
-  const rows = document.querySelector<HTMLElement>('[data-rows]')!;
-  const title = document.querySelector<HTMLElement>('[data-results-title]')!;
-  const empty = document.querySelector<HTMLElement>('[data-results-empty]')!;
-  const chips = [...document.querySelectorAll<HTMLButtonElement>('[data-interests] [data-filter]')];
-  const allPosters = [...grid.querySelectorAll<HTMLElement>('[data-poster]')];
-
-  const active = { cat: '', lvl: '' };
-
-  const render = () => {
-    const filtering = active.cat !== '' || active.lvl !== '';
-    results.hidden = !filtering;
-    rows.hidden = filtering;
-    if (!filtering) return;
-
-    const range = LEVEL_RANGES.find((r) => r.value === active.lvl);
-    let visible = 0;
-    for (const p of allPosters) {
-      const min = p.dataset.levelMin ? Number(p.dataset.levelMin) : null;
-      const max = p.dataset.levelMax ? Number(p.dataset.levelMax) : null;
-      // Guías sin nivel conocido aparecen en cualquier rango (no las escondemos por falta de datos).
-      const lvlOk = !range || ((min ?? 1) <= range.max && (max ?? 200) >= range.min);
-      const catOk = !active.cat || p.dataset.category === active.cat;
-      const show = lvlOk && catOk;
-      p.hidden = !show;
-      if (show) visible++;
-    }
-    const parts = [
-      active.cat && CATEGORY_LABELS[active.cat as Category],
-      range && `nivel ${range.min}–${range.max}`,
-    ].filter(Boolean);
-    title.textContent =
-      visible === 0
-        ? 'Sin resultados'
-        : `${visible} ${visible === 1 ? 'guía' : 'guías'}: ${parts.join(' · ')}`;
-    empty.hidden = visible > 0;
-  };
-
-  for (const chip of chips) {
-    chip.addEventListener('click', () => {
-      const key = chip.dataset.filter as 'cat' | 'lvl';
-      // Un interés por grupo: tocar el activo lo quita.
-      active[key] = active[key] === chip.dataset.value ? '' : chip.dataset.value!;
-      for (const c of chips) {
-        if (c.dataset.filter === key) c.setAttribute('aria-pressed', String(c.dataset.value === active[key]));
-      }
-      render();
+  // Pestañas por tipo: filtran la cuadrícula en el sitio.
+  const tabs = [...document.querySelectorAll<HTMLButtonElement>('.tab')];
+  const cards = [...document.querySelectorAll<HTMLElement>('[data-grid] [data-poster]')];
+  for (const tab of tabs) {
+    tab.addEventListener('click', () => {
+      const cat = tab.dataset.cat ?? '';
+      for (const t of tabs) t.setAttribute('aria-pressed', String(t === tab));
+      for (const c of cards) c.hidden = cat !== '' && c.dataset.category !== cat;
     });
   }
 </script>

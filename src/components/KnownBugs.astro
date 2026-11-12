@@ -36,10 +36,8 @@ const { bugs } = Astro.props;
   }
   .bugs h2 {
     margin: 0 0 0.6rem;
-    font-size: 1.25rem;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    color: var(--danger);
+    font-size: 1.4rem;
+    color: #a3291f;
   }
   .bugs ul {
     display: grid;
@@ -50,9 +48,10 @@ const { bugs } = Astro.props;
   }
   .bug {
     padding: 0.8rem 1rem;
-    border-left: 4px solid #ff8a80;
-    border-radius: 6px;
-    background: var(--surface, #241b14);
+    border: var(--line);
+    border-left: 8px solid var(--red);
+    border-radius: 10px;
+    background: var(--card);
   }
   .bug p {
     margin: 0;

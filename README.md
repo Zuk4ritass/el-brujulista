@@ -6,7 +6,7 @@ Sitio de guías paso a paso para **Trefus**, un servidor privado de Dofus basado
 
 | Ruta | Qué es |
 | --- | --- |
-| `/` | Portada: buscador al centro con sugerencias en desplegable (elegir una abre la guía), chips de intereses (tipo y nivel), fila "Continúa donde quedaste", "Destacadas" (`featured: true`) y una fila por categoría. |
+| `/` | Portada: buscador con sugerencias en desplegable (elegir una abre la guía), fila "Continúa donde quedaste" (solo si ya empezaste alguna) y todas las guías, con pestañas por tipo. |
 | `/guias/` | Catálogo completo en pósters, con buscador y filtros por nivel y categoría. Acepta `?q=`, `?nivel=` y `?categoria=`. |
 | `/guias/<slug>/` | La guía: progreso, "Necesitas:", pasos y bugs conocidos. El contexto extra queda plegado. |
 | `/sugerir/` | La gente propone ideas de guías por Discord. `/contribuir/` redirige aquí. |
@@ -54,12 +54,12 @@ El sitio es estático: cualquier hosting de archivos sirve.
 src/
 ├── content.config.ts      # esquema de las guías (Zod)
 ├── content/guias/         # una guía = un archivo .md
-├── components/            # pósters, filas, buscador, badge, checklist, héroe animado…
+├── components/            # pósters, filas, buscador, badge, checklist…
 ├── layouts/BaseLayout.astro
 ├── lib/                   # progreso (localStorage), buscador, helpers de guías
 ├── config.ts              # link de Discord
 ├── pages/                 # inicio, /guias/, /guias/[slug]/, /sugerir/, 404
-└── styles/global.css      # tema retro: colores, botones, cintas, pergamino
+└── styles/global.css      # tema "cuaderno": papel, tinta, bordes gruesos y sombras duras
 ```
 
 ## Agregar una guía nueva
@@ -76,7 +76,7 @@ levelMin: 50                  # opcional mientras no lo sepas
 levelMax: 80                  # opcional
 category: quest               # quest | dungeon | ruta | tip
 tags: [FG, Frigost]           # apodos y abreviaturas para el buscador
-featured: false               # true = aparece en la fila "Destacadas" de la portada
+featured: false               # reservado para destacar guías (la portada actual no lo usa)
 # cover: ./portadas/mi-guia.jpg  # opcional; sin esto se genera un póster automático
 requirements:
   - Lo que se necesita antes de empezar

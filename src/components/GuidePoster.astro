@@ -1,6 +1,6 @@
 ---
-// Póster vertical de una guía, estilo plataforma de streaming.
-// Si la guía no trae `cover`, se genera una portada SVG según la categoría (sin assets del juego).
+// Tarjeta-póster de una guía: dibujo arriba, título abajo, como una carátula de caricatura.
+// Si la guía no trae `cover`, el dibujo se genera según la categoría (sin assets del juego).
 import { Image } from 'astro:assets';
 import { CATEGORY_LABELS, STATUS_LABELS, levelLabel, type Guia } from '../lib/guides';
 import { stepId } from '../lib/slugify';
@@ -8,7 +8,7 @@ import { posterSvg } from '../lib/poster-art';
 
 interface Props {
   guia: Guia;
-  /** Tamaño en filas (más chico) o en cuadrícula. */
+  /** Tamaño en filas (ancho fijo) o en cuadrícula. */
   size?: 'row' | 'grid';
   /** Primeras tarjetas visibles: cargar imagen sin lazy. */
   eager?: boolean;
@@ -16,16 +16,15 @@ interface Props {
 const { guia, size = 'grid', eager = false } = Astro.props;
 const { data } = guia;
 
-// Id único por póster: la misma guía puede aparecer varias veces en la página (filas, resultados)
-// y un SVG oculto con ids repetidos rompería los degradados de los visibles.
-const uid = `p-${crypto.randomUUID().slice(0, 8)}`;
-const statusIcon = { verificado: '✓', 'sin-verificar': '?', desactualizado: '!' }[data.verification.status];
+const status = data.verification.status;
+const stamp = { verificado: '✓ Probada', 'sin-verificar': 'Sin probar', desactualizado: '! Desactualizada' }[status];
 const stepIds = data.steps.map(stepId).join(',');
-const isPending = (s: string) => s.includes('POR COMPLETAR');
+const level = levelLabel(data);
+const levelText = level.includes('POR COMPLETAR') ? null : level;
 ---
 
 <li
-  class:list={['poster', `poster--${size}`]}
+  class:list={['poster', `poster--${size}`, `poster--${data.category}`]}
   data-poster
   data-slug={data.slug}
   data-category={data.category}
@@ -39,27 +38,22 @@ const isPending = (s: string) => s.includes('POR COMPLETAR');
         data.cover ? (
           <Image src={data.cover} alt="" widths={[240, 400]} sizes="240px" loading={eager ? 'eager' : 'lazy'} />
         ) : (
-          <Fragment set:html={posterSvg(data.category, uid)} />
+          <Fragment set:html={posterSvg(data.category)} />
         )
       }
+      <span class="poster__cat">{CATEGORY_LABELS[data.category]}</span>
+      {data.example && <span class="poster__example">Ejemplo</span>}
     </div>
-
-    <div class="poster__shade" aria-hidden="true"></div>
-
-    <span class="poster__cat">{CATEGORY_LABELS[data.category]}</span>
-    <span class:list={['poster__status', `poster__status--${data.verification.status}`]}>
-      <span aria-hidden="true">{statusIcon}</span>
-      <span class="visually-hidden">{STATUS_LABELS[data.verification.status]}</span>
-    </span>
-    {data.example && <span class="poster__example">Ejemplo</span>}
 
     <div class="poster__info">
       <h3 class="poster__title">{data.title}</h3>
       <p class="poster__meta">
-        <span class:list={{ dim: isPending(levelLabel(data)) }}>{isPending(levelLabel(data)) ? 'Nivel ?' : levelLabel(data)}</span>
-        <span aria-hidden="true">·</span>
+        {levelText && <span>{levelText}</span>}
         <span>{data.steps.length} {data.steps.length === 1 ? 'paso' : 'pasos'}</span>
       </p>
+      <span class:list={['poster__stamp', `poster__stamp--${status}`]} title={STATUS_LABELS[status]}>
+        {stamp}
+      </span>
     </div>
 
     <div class="poster__progress" data-poster-progress hidden>
@@ -94,144 +88,137 @@ const isPending = (s: string) => s.includes('POR COMPLETAR');
     flex: none;
   }
   .poster--row {
-    width: clamp(140px, 38vw, 200px);
+    width: clamp(150px, 40vw, 210px);
     scroll-snap-align: start;
   }
   .poster__link {
     position: relative;
-    display: block;
-    aspect-ratio: 2 / 3;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
     overflow: hidden;
-    border-radius: 10px;
-    border: 2px solid rgb(255 255 255 / 0.08);
-    color: #fff8ec;
+    border: var(--line);
+    border-radius: var(--radius);
+    background: var(--card);
+    color: var(--ink);
     text-decoration: none;
-    background: #0b0704;
-    box-shadow: 0 8px 18px rgb(0 0 0 / 0.5);
+    box-shadow: var(--pop);
     transition:
-      transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
-      box-shadow 0.25s ease,
-      border-color 0.25s ease;
+      transform 0.18s cubic-bezier(0.3, 1.5, 0.5, 1),
+      box-shadow 0.18s ease;
   }
+  /* Al pasar el mouse la tarjeta se "levanta" y se ladea un poquito, como una carta */
   .poster__link:hover,
   .poster__link:focus-visible {
-    transform: scale(1.04) translateY(-4px);
-    border-color: var(--gold);
-    box-shadow: 0 16px 30px rgb(0 0 0 / 0.6);
-    z-index: 2;
+    transform: translate(-3px, -3px) rotate(-1.5deg);
+    box-shadow: 8px 8px 0 var(--ink);
+  }
+  .poster:nth-child(even) .poster__link:hover,
+  .poster:nth-child(even) .poster__link:focus-visible {
+    transform: translate(-3px, -3px) rotate(1.5deg);
   }
   .poster__link:focus-visible {
     outline: 3px solid var(--focus);
-    outline-offset: 3px;
+    outline-offset: 4px;
   }
-  .poster__art,
+
+  .poster__art {
+    position: relative;
+    aspect-ratio: 1;
+    border-bottom: var(--line);
+    overflow: hidden;
+  }
   .poster__art :global(svg),
   .poster__art :global(img) {
-    position: absolute;
-    inset: 0;
+    display: block;
     width: 100%;
     height: 100%;
     object-fit: cover;
   }
   .poster__art :global(.poster__glyph) {
-    transform-origin: 100px 110px;
-    transition: transform 0.4s ease;
+    transform-origin: 100px 100px;
+    transition: transform 0.3s cubic-bezier(0.3, 1.6, 0.5, 1);
   }
   .poster__link:hover :global(.poster__glyph) {
-    transform: scale(1.08) rotate(-3deg);
-  }
-  .poster__shade {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(180deg, rgb(0 0 0 / 0.35) 0%, transparent 25%, transparent 45%, rgb(0 0 0 / 0.92) 100%);
+    transform: scale(1.08) rotate(-4deg);
   }
 
-  .poster__cat {
+  .poster__cat,
+  .poster__example {
     position: absolute;
     top: 0.5rem;
     left: 0.5rem;
-    padding: 0.1em 0.5em;
-    border-radius: 4px;
-    background: rgb(0 0 0 / 0.55);
-    font: 600 0.72rem/1.5 var(--font-display);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-  }
-  .poster__status {
-    position: absolute;
-    top: 0.45rem;
-    right: 0.45rem;
-    display: grid;
-    place-items: center;
-    width: 1.6rem;
-    height: 1.6rem;
-    border-radius: 50%;
-    font-weight: 900;
-    font-size: 0.85rem;
-  }
-  .poster__status--verificado {
-    background: #1f6b3a;
-    border: 2px solid #f2fff5;
-  }
-  .poster__status--sin-verificar {
-    background: rgb(0 0 0 / 0.6);
-    color: var(--warn);
-    border: 2px dashed var(--warn);
-  }
-  .poster__status--desactualizado {
-    background: #5c1a1a;
-    color: #ffe3e0;
-    border: 2px solid var(--danger);
+    padding: 0.05em 0.55em;
+    border: 2px solid var(--ink);
+    border-radius: 8px;
+    background: var(--card);
+    font: 400 0.85rem/1.4 var(--font-display);
   }
   .poster__example {
-    position: absolute;
-    top: 2.1rem;
-    left: 0.5rem;
-    padding: 0.1em 0.5em;
-    border-radius: 4px;
-    background: #3b3f8f;
-    border: 1px solid #8f95ff;
-    font: 600 0.72rem/1.5 var(--font-display);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
+    left: auto;
+    right: 0.5rem;
+    background: var(--blue);
+    color: #fff;
+    rotate: 4deg;
   }
+
   .poster__info {
-    position: absolute;
-    inset: auto 0 0;
-    padding: 0.7rem 0.7rem 0.85rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 0.25rem;
+    padding: 0.65rem 0.75rem 0.75rem;
   }
   .poster__title {
     margin: 0;
-    font-size: clamp(1.05rem, 3.6vw, 1.35rem);
-    line-height: 1.05;
-    text-transform: uppercase;
-    text-shadow: 0 2px 6px rgb(0 0 0 / 0.8);
+    font-size: clamp(1.1rem, 3.4vw, 1.3rem);
+    line-height: 1.1;
     overflow-wrap: anywhere;
-  }
-  .poster--grid .poster__title {
-    font-size: clamp(1.1rem, 2.6vw, 1.45rem);
   }
   .poster__meta {
     display: flex;
-    gap: 0.35rem;
-    margin: 0.3rem 0 0;
-    font-size: 0.78rem;
-    font-weight: 700;
-    color: #e9dcc2;
+    flex-wrap: wrap;
+    gap: 0 0.6rem;
+    margin: 0;
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: var(--ink-soft);
   }
-  .dim {
-    opacity: 0.75;
+  /* Sello de estado escrito (sin íconos que haya que aprender) */
+  .poster__stamp {
+    align-self: flex-start;
+    margin-top: auto;
+    padding: 0.05em 0.5em;
+    border: 2px solid currentColor;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .poster__stamp--verificado {
+    color: var(--green-dark);
+    background: #e6f4d2;
+  }
+  .poster__stamp--sin-verificar {
+    color: var(--ink-soft);
+    border-style: dashed;
+  }
+  .poster__stamp--desactualizado {
+    color: #a3291f;
+    background: #fbe1dc;
   }
 
-  /* Barra roja de "ya empezaste", como en las plataformas de streaming */
+  /* Barra de "ya empezaste" pegada abajo de la tarjeta */
   .poster__progress {
     position: absolute;
     inset: auto 0 0;
   }
   .poster__progress-bar {
     display: block;
-    height: 5px;
-    background: rgb(255 255 255 / 0.25);
+    height: 7px;
+    border-top: 2px solid var(--ink);
+    background: var(--paper-2);
   }
   .poster__progress-bar > span {
     display: block;

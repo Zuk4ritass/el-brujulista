@@ -6,13 +6,13 @@
  */
 import { buildIndex, normalize, search, type SearchDoc } from './search';
 import { posterSvg, type ArtCategory } from './poster-art';
-import { STATUS_LABELS } from './guides';
 
 const MAX = 6;
-const STATUS: Record<string, { icon: string; text: string }> = {
-  verificado: { icon: '✓', text: STATUS_LABELS.verificado },
-  'sin-verificar': { icon: '?', text: STATUS_LABELS['sin-verificar'] },
-  desactualizado: { icon: '!', text: STATUS_LABELS.desactualizado },
+// Mismo texto que el sello de los pósters.
+const STATUS: Record<string, string> = {
+  verificado: '✓ Probada',
+  'sin-verificar': 'Sin probar',
+  desactualizado: '! Desactualizada',
 };
 
 export function initSuggest(form: HTMLFormElement): void {
@@ -94,19 +94,13 @@ export function initSuggest(form: HTMLFormElement): void {
       li.setAttribute('aria-selected', 'false');
       li.dataset.slug = slug;
 
-      // Miniatura: el mismo arte del póster + el sello de estado en la esquina
+      // Miniatura: el mismo dibujo del póster
       const thumb = document.createElement('span');
       thumb.className = 'opt__thumb';
       thumb.setAttribute('aria-hidden', 'true');
       // posterSvg genera SVG propio (sin datos del usuario), es seguro como innerHTML
-      thumb.innerHTML = posterSvg((d.meta?.key ?? 'ruta') as ArtCategory, `s${i}-${Date.now() % 1e6}`, true);
+      thumb.innerHTML = posterSvg((d.meta?.key ?? 'ruta') as ArtCategory, '', true);
       const st = STATUS[d.meta?.status ?? ''];
-      if (st) {
-        const badge = document.createElement('span');
-        badge.className = `opt__status opt__status--${d.meta!.status}`;
-        badge.textContent = st.icon;
-        thumb.append(badge);
-      }
 
       const text = document.createElement('span');
       text.className = 'opt__text';
@@ -124,7 +118,7 @@ export function initSuggest(form: HTMLFormElement): void {
       if (st) {
         const s2 = document.createElement('span');
         s2.className = `opt__st opt__st--${d.meta!.status}`;
-        s2.textContent = `${st.icon} ${st.text}`;
+        s2.textContent = st;
         meta.append(s2);
       }
       text.append(t, meta);

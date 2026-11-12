@@ -42,18 +42,20 @@ const categories = [...new Set(guias.map((g) => g.data.category))] as Category[]
   .count {
     margin: 0.75rem 0 1rem;
     font-size: 0.9rem;
-    color: var(--text-soft);
+    font-weight: 700;
+    color: var(--ink-soft);
   }
   .poster-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+    gap: 1.25rem;
     margin: 0;
     padding: 0;
   }
   @media (min-width: 720px) {
     .poster-grid {
-      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1.5rem;
     }
   }
   .empty p {

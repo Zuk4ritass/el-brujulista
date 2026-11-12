@@ -107,10 +107,8 @@ const total = steps.length;
     z-index: 5;
     margin-inline: calc(var(--gutter) * -1);
     padding: 0.6rem var(--gutter) 0.75rem;
-    background: rgb(20 14 9 / 0.94);
-    backdrop-filter: blur(6px);
-    border-bottom: 2px solid #0b0704;
-    box-shadow: 0 6px 12px rgb(0 0 0 / 0.35);
+    background: var(--paper);
+    border-bottom: 2px dashed rgb(43 26 14 / 0.35);
   }
   .progress__row {
     display: flex;
@@ -121,64 +119,53 @@ const total = steps.length;
   }
   .progress__text {
     margin: 0;
-    font: 600 1.05rem/1.2 var(--font-display);
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-  }
-  .progress__continue {
-    font-weight: 800;
+    font: 400 1.15rem/1.2 var(--font-display);
   }
   progress {
     display: block;
     width: 100%;
-    height: 16px;
+    height: 18px;
     margin-top: 0.45rem;
     appearance: none;
-    border: 2px solid #0b0704;
+    border: var(--line);
     border-radius: 999px;
-    background: #2a1f15;
-    box-shadow: inset 0 2px 4px rgb(0 0 0 / 0.6);
+    background: var(--card);
     overflow: hidden;
   }
   progress::-webkit-progress-bar {
-    background: #2a1f15;
+    background: var(--card);
   }
   progress::-webkit-progress-value {
-    background: linear-gradient(180deg, var(--green-hi), var(--green) 60%, #5f8a22);
-    border-radius: 999px;
-    transition: width 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+    background: var(--green);
+    transition: width 0.35s cubic-bezier(0.3, 1.4, 0.5, 1);
   }
   progress::-moz-progress-bar {
-    background: linear-gradient(180deg, var(--green-hi), var(--green) 60%, #5f8a22);
-    border-radius: 999px;
+    background: var(--green);
   }
   .progress__warn {
     margin: 0.5rem 0 0;
     font-size: 0.9rem;
-    color: var(--warn);
+    color: #a3291f;
   }
 
   .steps {
-    margin-top: 1.1rem !important;
     display: grid;
-    gap: 0.9rem;
+    gap: 1rem;
+    margin: 1.1rem 0 0;
     padding: 0;
-    margin: 0;
     list-style: none;
   }
   .step {
     padding: 1rem 1.1rem;
-    border: 2px solid var(--border);
+    border: var(--line);
     border-radius: var(--radius);
-    background:
-      linear-gradient(180deg, rgb(255 255 255 / 0.035), transparent 40%),
-      var(--surface);
-    box-shadow: 0 4px 0 rgb(0 0 0 / 0.35);
+    background: var(--card);
+    box-shadow: var(--pop);
     scroll-margin-top: 6rem;
     transition:
       opacity 0.25s ease,
-      border-color 0.25s ease,
-      box-shadow 0.25s ease;
+      box-shadow 0.25s ease,
+      background 0.25s ease;
   }
   .step__head {
     display: flex;
@@ -191,44 +178,42 @@ const total = steps.length;
     flex: none;
     display: grid;
     place-content: center;
-    width: 1.9rem;
-    height: 1.9rem;
+    width: 2rem;
+    height: 2rem;
     margin: 0;
     appearance: none;
-    border: 3px solid #0b0704;
-    border-radius: 7px;
-    background: var(--parchment);
-    box-shadow: inset 0 -3px 0 var(--parchment-2), 0 3px 0 rgb(0 0 0 / 0.45);
+    border: var(--line);
+    border-radius: 8px;
+    background: var(--card);
+    box-shadow: 2px 2px 0 var(--ink);
     cursor: pointer;
   }
   .step__check::after {
     content: '';
     width: 0.65rem;
-    height: 1.05rem;
+    height: 1.1rem;
     margin-top: -0.2rem;
-    border: solid #16210a;
+    border: solid var(--ink);
     border-width: 0 4px 4px 0;
     transform: rotate(45deg) scale(0);
-    transition: transform 0.18s cubic-bezier(0.3, 1.6, 0.5, 1);
+    transition: transform 0.2s cubic-bezier(0.3, 1.8, 0.5, 1);
   }
   .step__check:checked {
     background: var(--green);
-    box-shadow: inset 0 -3px 0 #5f8a22, 0 3px 0 rgb(0 0 0 / 0.45);
   }
   .step__check:checked::after {
     transform: rotate(45deg) scale(1);
   }
   .step__title {
-    font: 600 1.2rem/1.3 var(--font-display);
-    letter-spacing: 0.01em;
+    font: 400 1.3rem/1.25 var(--font-display);
     cursor: pointer;
     padding-top: 0.1rem;
   }
   .step__num {
-    color: var(--gold);
+    color: var(--orange);
   }
   .step__body {
-    padding-left: 2.7rem;
+    padding-left: 2.8rem;
   }
   .step__body p {
     margin: 0.5rem 0 0;
@@ -244,65 +229,60 @@ const total = steps.length;
     display: inline-flex;
     align-items: baseline;
     gap: 0.35rem;
-    padding: 0.2rem 0.6rem;
-    border-radius: 6px;
-    background: rgb(0 0 0 / 0.28);
-    border: 1px solid var(--border);
+    padding: 0.15rem 0.6rem;
+    border: 2px solid var(--ink);
+    border-radius: 8px;
+    background: var(--paper);
   }
   .step__facts dt {
     font-size: 0.72rem;
-    font-weight: 800;
+    font-weight: 900;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-soft);
+    letter-spacing: 0.06em;
+    color: var(--ink-soft);
   }
   .step__facts dd {
     margin: 0;
-    font-weight: 700;
+    font-weight: 800;
   }
   .step__notes {
-    color: var(--text-soft);
+    color: var(--ink-soft);
   }
 
-  /* Paso completado: atenuado, título tachado y borde verde. Se distingue sin depender del color. */
+  /* Paso completado: se pliega a solo el título, tachado y sin sombra. */
   .step.is-done {
-    opacity: 0.6;
-    border-color: #3f7a43;
+    padding-block: 0.6rem;
+    opacity: 0.65;
+    background: var(--paper);
     box-shadow: none;
   }
   .step.is-done .step__title {
     text-decoration: line-through;
-    text-decoration-thickness: 2px;
+    text-decoration-thickness: 3px;
   }
-  /* Paso hecho: se pliega a solo el título para que la página se acorte al avanzar.
-     Desmarcarlo lo vuelve a mostrar completo. */
   .step.is-done .step__body {
     display: none;
   }
-  .step.is-done {
-    padding-block: 0.6rem;
-  }
   /* Siguiente paso pendiente: resaltado para retomar rápido. */
   .step.is-next {
-    border-color: var(--gold);
-    box-shadow: 0 0 0 4px rgb(242 193 78 / 0.18), 0 4px 0 rgb(0 0 0 / 0.35);
+    background: #fff6d6;
+    box-shadow: var(--pop-lg);
   }
   .step.is-next .step__title::after {
-    content: 'Siguiente';
+    content: '¡Sigue este!';
     display: inline-block;
     margin-left: 0.5rem;
-    padding: 0.1em 0.55em;
-    border-radius: 4px;
-    background: var(--gold);
-    color: #2b1d12;
-    font-size: 0.75rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    padding: 0.05em 0.5em;
+    border: 2px solid var(--ink);
+    border-radius: 6px;
+    background: var(--yellow);
+    font: 400 0.85rem/1.4 var(--font-display);
     vertical-align: 0.2em;
+    rotate: -3deg;
   }
 
   .actions {
-    margin-top: 1.25rem;
+    margin-top: 1.5rem;
   }
 
   @media (prefers-reduced-motion: reduce) {
