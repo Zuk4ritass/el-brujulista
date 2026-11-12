@@ -47,7 +47,9 @@ steps:
     notes: "Compra solo lo que te pida el set que vas a fabricar: estos recursos son para los sets de nivel alto de Frigost 2 (F2) y Frigost 3 (F3)."
     capturas: [kamas-de-hielo-tienda.webp]
 verification:
-  status: sin-verificar
+  status: verificado
+  lastVerified: 2026-11-12
+  verifiedBy: Zukitas
 ---
 
 Las **kamas de hielo** son la moneda local de Frigost. No sirven fuera de la isla: se usan para comprarle a la Alcaldesa Lario los recursos con los que se fabrican los sets de nivel alto de **Frigost 2 (F2)** y **Frigost 3 (F3)**.
