@@ -512,6 +512,24 @@ const fmtCoords = (c: string) => {
     gap: 0.6rem;
   }
 
+  /* Escritorio: más aire dentro de cada paso y visuales más grandes */
+  @media (min-width: 900px) {
+    .steps {
+      gap: 1.4rem;
+    }
+    .step {
+      padding: 1.6rem 2rem;
+    }
+    .opcion {
+      padding: 1.15rem 1.4rem;
+    }
+    .step__visual {
+      gap: 0 1.5rem;
+    }
+    .step__visual > :global(*) {
+      max-width: 440px;
+    }
+  }
   @media (prefers-reduced-motion: reduce) {
     .step,
     progress::-webkit-progress-value {

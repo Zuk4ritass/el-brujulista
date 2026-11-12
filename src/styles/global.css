@@ -51,7 +51,7 @@
   --radius: 14px;
   --pop: 4px 4px 0 var(--shadow);
   --pop-lg: 6px 6px 0 var(--shadow);
-  --max: 1040px;
+  --max: 1200px;
   --gutter: clamp(1rem, 4vw, 2rem);
 }
 
