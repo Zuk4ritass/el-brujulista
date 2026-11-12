@@ -12,6 +12,8 @@ export interface SearchDoc {
   tags: string;
   summary: string;
   content: string;
+  /** Datos para mostrar en sugerencias (no se usan para buscar). */
+  meta?: { key: string; category: string; level: string; status: string; example: boolean };
 }
 
 const WEIGHTS = { title: 10, tags: 8, summary: 4, content: 2 } as const;

@@ -2,13 +2,22 @@
 // Caja de búsqueda + datos del índice. Sin JS funciona como formulario normal hacia /guias/?q=...
 import { getCollection } from 'astro:content';
 import type { SearchDoc } from '../lib/search';
+import { CATEGORY_LABELS, levelLabel } from '../lib/guides';
 
 interface Props {
   id?: string;
   size?: 'big' | 'normal';
   placeholder?: string;
+  /** Muestra sugerencias en un desplegable; elegir una lleva directo a la guía. */
+  suggest?: boolean;
 }
-const { id = 'buscar', size = 'normal', placeholder = 'Busca una guía, un mapa, un monstruo…' } = Astro.props;
+const {
+  id = 'buscar',
+  size = 'normal',
+  placeholder = 'Busca una guía, un mapa, un monstruo…',
+  suggest = false,
+} = Astro.props;
+const listId = `${id}-sugerencias`;
 
 const guias = await getCollection('guias');
 // "POR COMPLETAR" es relleno, no contenido: que no aparezca como resultado al buscar "completar".
@@ -26,10 +35,24 @@ const docs: SearchDoc[] = guias.map((g) => ({
   ]
     .filter((x): x is string => Boolean(x))
     .join(' ')),
+  meta: {
+    key: g.data.category,
+    category: CATEGORY_LABELS[g.data.category],
+    level: levelLabel(g.data).includes('POR COMPLETAR') ? '' : levelLabel(g.data),
+    status: g.data.verification.status,
+    example: g.data.example,
+  },
 }));
 ---
 
-<form class:list={['search', `search--${size}`]} action="/guias/" method="get" role="search" data-search-form>
+<form
+  class:list={['search', `search--${size}`]}
+  action="/guias/"
+  method="get"
+  role="search"
+  data-search-form
+  data-suggest={suggest ? '' : undefined}
+>
   <label for={id} class="visually-hidden">Buscar guías</label>
   <svg class="search__icon" viewBox="0 0 24 24" aria-hidden="true">
     <circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2.6"></circle>
@@ -44,12 +67,117 @@ const docs: SearchDoc[] = guias.map((g) => ({
     spellcheck="false"
     enterkeyhint="search"
     data-search-input
+    role={suggest ? 'combobox' : undefined}
+    aria-autocomplete={suggest ? 'list' : undefined}
+    aria-expanded={suggest ? 'false' : undefined}
+    aria-controls={suggest ? listId : undefined}
   />
   <button type="button" class="search__clear" aria-label="Borrar búsqueda" data-search-clear hidden>✕</button>
+  {
+    suggest && (
+      <div class="suggest" data-suggest-panel hidden>
+        <ul id={listId} role="listbox" aria-label="Sugerencias" data-suggest-list />
+        <p class="suggest__empty" data-suggest-empty hidden>
+          No hay guías con eso todavía. <a href="/sugerir/">Sugiere esta guía</a>
+        </p>
+        <a class="suggest__all" href="/guias/" data-suggest-all>Ver todo en el catálogo →</a>
+      </div>
+    )
+  }
+  <p class="visually-hidden" aria-live="polite" data-suggest-status></p>
 </form>
 <script type="application/json" data-search-docs set:html={JSON.stringify(docs)} />
 
 <style>
+  /* ---------- Desplegable de sugerencias ---------- */
+  .suggest {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: 0;
+    right: 0;
+    z-index: 30;
+    overflow: hidden;
+    border: 2px solid var(--border-strong);
+    border-radius: 16px;
+    background: #1a120b;
+    box-shadow: 0 18px 40px rgb(0 0 0 / 0.6);
+    text-align: left;
+  }
+  .suggest ul {
+    margin: 0;
+    padding: 0.35rem;
+    list-style: none;
+  }
+  .suggest :global(.opt) {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.55rem 0.65rem;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  .suggest :global(.opt[aria-selected='true']),
+  .suggest :global(.opt:hover) {
+    background: rgb(242 193 78 / 0.14);
+  }
+  .suggest :global(.opt[aria-selected='true']) {
+    outline: 2px solid var(--gold);
+    outline-offset: -2px;
+  }
+  .suggest :global(.opt__thumb) {
+    flex: none;
+    width: 2.2rem;
+    height: 3.2rem;
+    border-radius: 5px;
+    border: 1px solid rgb(255 255 255 / 0.15);
+  }
+  .suggest :global(.opt__thumb--quest) {
+    background: linear-gradient(160deg, #3a1d5c, #12081f);
+  }
+  .suggest :global(.opt__thumb--dungeon) {
+    background: linear-gradient(160deg, #5c1414, #140404);
+  }
+  .suggest :global(.opt__thumb--ruta) {
+    background: linear-gradient(160deg, #0f4a57, #04161b);
+  }
+  .suggest :global(.opt__thumb--tip) {
+    background: linear-gradient(160deg, #2f5214, #0b1604);
+  }
+  .suggest :global(.opt__text) {
+    min-width: 0;
+  }
+  .suggest :global(.opt__title) {
+    display: block;
+    font: 600 1.05rem/1.2 var(--font-display);
+    text-transform: uppercase;
+    color: var(--text);
+  }
+  .suggest :global(.opt__title mark) {
+    background: none;
+    color: var(--gold);
+  }
+  .suggest :global(.opt__meta) {
+    display: block;
+    margin-top: 0.15rem;
+    font-size: 0.82rem;
+    color: var(--text-soft);
+  }
+  .suggest__empty {
+    margin: 0;
+    padding: 0.9rem 1rem 0.4rem;
+    color: var(--text-soft);
+  }
+  .suggest__all {
+    display: block;
+    padding: 0.7rem 1rem;
+    border-top: 1px solid var(--border);
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .suggest__all:hover {
+    background: rgb(255 255 255 / 0.05);
+  }
+
   .search {
     position: relative;
     display: flex;

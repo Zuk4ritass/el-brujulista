@@ -31,7 +31,7 @@ const ICONS: Record<Category, string> = { quest: '📜', dungeon: '🗝️', rut
       <p class="ribbon hero__eyebrow">Guías de Trefus</p>
       <h1 id="hero-title" class="hero__title">¿Qué quieres hacer hoy?</h1>
       <div class="hero__search">
-        <SearchBox id="buscar-inicio" size="big" />
+        <SearchBox id="buscar-inicio" size="big" suggest />
       </div>
 
       <!-- Intereses: filtran al instante, solos o junto con la búsqueda -->
@@ -114,12 +114,12 @@ const ICONS: Record<Category, string> = { quest: '📜', dungeon: '🗝️', rut
   /* ---------- Héroe con buscador ---------- */
   .hero {
     position: relative;
+    z-index: 5; /* el desplegable de sugerencias debe quedar encima de las filas */
     display: grid;
     align-items: center;
     min-height: clamp(440px, 66vh, 600px);
     margin-top: -3px;
-    overflow: hidden;
-    isolation: isolate;
+    /* sin overflow: hidden, para que el desplegable pueda salir del héroe (la escena recorta sola) */
   }
   .hero__scrim {
     position: absolute;
@@ -158,6 +158,8 @@ const ICONS: Record<Category, string> = { quest: '📜', dungeon: '🗝️', rut
     animation: rise-in 0.8s 0.15s cubic-bezier(0.2, 0.8, 0.2, 1) both;
   }
   .hero__search {
+    position: relative;
+    z-index: 10; /* el desplegable debe tapar los chips de intereses */
     width: 100%;
     max-width: 680px;
     animation: rise-in 0.7s 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both;
@@ -291,7 +293,7 @@ const ICONS: Record<Category, string> = { quest: '📜', dungeon: '🗝️', rut
 </style>
 
 <script>
-  import { initSearch } from '../lib/search-ui';
+  import { initSuggest } from '../lib/suggest-ui';
   import { loadProgress } from '../lib/progress';
   import { CATEGORY_LABELS, LEVEL_RANGES, type Category } from '../lib/guides';
 
@@ -310,7 +312,11 @@ const ICONS: Record<Category, string> = { quest: '📜', dungeon: '🗝️', rut
     contRow.hidden = !any;
   }
 
-  // Búsqueda + intereses. Si hay texto o algún interés activo, los resultados reemplazan las filas.
+  // Buscador: solo sugerencias en desplegable; no toca las filas de abajo.
+  const searchForm = document.querySelector<HTMLFormElement>('[data-search-form][data-suggest]');
+  if (searchForm) initSuggest(searchForm);
+
+  // Intereses: si hay alguno activo, los resultados reemplazan las filas.
   const results = document.querySelector<HTMLElement>('[data-results]')!;
   const grid = document.querySelector<HTMLElement>('[data-results-grid]')!;
   const rows = document.querySelector<HTMLElement>('[data-rows]')!;
@@ -318,21 +324,16 @@ const ICONS: Record<Category, string> = { quest: '📜', dungeon: '🗝️', rut
   const empty = document.querySelector<HTMLElement>('[data-results-empty]')!;
   const chips = [...document.querySelectorAll<HTMLButtonElement>('[data-interests] [data-filter]')];
   const allPosters = [...grid.querySelectorAll<HTMLElement>('[data-poster]')];
-  const bySlug = new Map(allPosters.map((p) => [p.dataset.slug!, p]));
 
-  let matches: string[] | null = null;
-  let query = '';
   const active = { cat: '', lvl: '' };
 
   const render = () => {
-    const filtering = matches !== null || active.cat !== '' || active.lvl !== '';
+    const filtering = active.cat !== '' || active.lvl !== '';
     results.hidden = !filtering;
     rows.hidden = filtering;
     if (!filtering) return;
 
     const range = LEVEL_RANGES.find((r) => r.value === active.lvl);
-    const ordered = matches ? matches.map((s) => bySlug.get(s)).filter((p): p is HTMLElement => !!p) : allPosters;
-    const keep = new Set(ordered);
     let visible = 0;
     for (const p of allPosters) {
       const min = p.dataset.levelMin ? Number(p.dataset.levelMin) : null;
@@ -340,14 +341,11 @@ const ICONS: Record<Category, string> = { quest: '📜', dungeon: '🗝️', rut
       // Guías sin nivel conocido aparecen en cualquier rango (no las escondemos por falta de datos).
       const lvlOk = !range || ((min ?? 1) <= range.max && (max ?? 200) >= range.min);
       const catOk = !active.cat || p.dataset.category === active.cat;
-      const show = keep.has(p) && lvlOk && catOk;
+      const show = lvlOk && catOk;
       p.hidden = !show;
       if (show) visible++;
     }
-    for (const p of ordered) grid.append(p); // orden por relevancia
-
     const parts = [
-      query && `"${query}"`,
       active.cat && CATEGORY_LABELS[active.cat as Category],
       range && `nivel ${range.min}–${range.max}`,
     ].filter(Boolean);
@@ -369,10 +367,4 @@ const ICONS: Record<Category, string> = { quest: '📜', dungeon: '🗝️', rut
       render();
     });
   }
-
-  initSearch((slugs, q) => {
-    matches = slugs;
-    query = q;
-    render();
-  });
 </script>
