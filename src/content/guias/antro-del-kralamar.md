@@ -56,6 +56,10 @@ steps:
   - id: recompensas
     title: Recoge las recompensas
     description: "POR COMPLETAR (qué da y cómo se sale)"
+video:
+  youtube: eh_hq5gwURU
+  titulo: "Guía Kralamar By Xeloblac | Aermyfus Retro"
+  autor: Aermyfus
 verification:
   status: sin-verificar
 ---

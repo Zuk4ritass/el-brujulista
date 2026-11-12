@@ -108,6 +108,14 @@ const guias = defineCollection({
         .regex(/^(objetos\/[\w-]+\/[\w-]+|npcs\/[\w-]+)$/, 'poster es "objetos/carpeta/archivo" o "npcs/archivo", sin extensión')
         .optional(),
       requirements: z.array(z.string()).default([]),
+      /** Video tutorial opcional de YouTube, embebido al final de los pasos. `youtube` es el id (lo que va tras watch?v=). */
+      video: z
+        .object({
+          youtube: z.string().regex(/^[\w-]{11}$/, 'youtube es el id de 11 caracteres del video'),
+          titulo: z.string().min(1),
+          autor: z.string().min(1),
+        })
+        .optional(),
       steps: z.array(step).min(1),
       knownBugs: z.array(knownBug).default([]),
       verification,

@@ -71,6 +71,27 @@ const description = data.summary.includes('POR COMPLETAR') ? `Guía paso a paso:
       }
     </StepChecklist>
 
+    {
+      data.video && (
+        <section class="video" aria-labelledby="video-titulo">
+          <h2 id="video-titulo" class="video__titulo">¿Prefieres verlo en video?</h2>
+          <div class="video__marco">
+            <iframe
+              src={`https://www.youtube-nocookie.com/embed/${data.video.youtube}`}
+              title={data.video.titulo}
+              loading="lazy"
+              allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerpolicy="strict-origin-when-cross-origin"
+              allowfullscreen
+            ></iframe>
+          </div>
+          <p class="video__credito">
+            <a href={`https://www.youtube.com/watch?v=${data.video.youtube}`} target="_blank" rel="noopener">«{data.video.titulo}»</a>, de <strong>{data.video.autor}</strong>. Puede no coincidir del todo con Trefus.
+          </p>
+        </section>
+      )
+    }
+
     <KnownBugs bugs={data.knownBugs} />
   </div>
 </BaseLayout>
@@ -144,6 +165,35 @@ const description = data.summary.includes('POR COMPLETAR') ? `Guía paso a paso:
   }
   .more__body {
     padding: 0 0.9rem 0.8rem;
+  }
+  .video {
+    margin-top: 2rem;
+  }
+  .video__titulo {
+    margin: 0 0 0.7rem;
+    font-size: 1.5rem;
+  }
+  .video__marco {
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border: var(--line);
+    border-radius: 12px;
+    background: #000;
+    box-shadow: 4px 4px 0 var(--shadow);
+  }
+  .video__marco iframe {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+  .video__credito {
+    margin: 0.6rem 0 0;
+    color: var(--ink-soft);
+    font-size: 0.9rem;
+  }
+  .video__credito a {
+    color: var(--ink);
   }
   .more__body :global(p) {
     margin: 0 0 0.5rem;
