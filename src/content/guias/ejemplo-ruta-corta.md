@@ -13,6 +13,7 @@ requirements:
 steps:
   - title: Paso de ejemplo A
     description: Texto de relleno para probar el checklist.
+    coords: "-18, -45" # coordenada de EJEMPLO (no es un dato real de Trefus), para ver la placa y el botón del mapa
   - title: Paso de ejemplo B
     description: Otro texto de relleno.
 knownBugs:
