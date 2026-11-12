@@ -4,6 +4,7 @@
 import GameText from './GameText.astro';
 import { stepId } from '../lib/slugify';
 import MiniMapa from './MiniMapa.astro';
+import Capturas from './Capturas.astro';
 
 interface Step {
   id?: string;
@@ -13,6 +14,7 @@ interface Step {
   coords?: string;
   reward?: string;
   notes?: string;
+  capturas?: string[];
 }
 interface Props {
   slug: string;
@@ -88,8 +90,13 @@ const fmtCoords = (c: string) => {
                   )}
                 </dl>
               )}
-              {step.coords && parseCoords(step.coords) && (
-                <MiniMapa x={parseCoords(step.coords)!.x} y={parseCoords(step.coords)!.y} />
+              {((step.coords && parseCoords(step.coords)) || (step.capturas?.length ?? 0) > 0) && (
+                <div class="step__visual">
+                  {step.coords && parseCoords(step.coords) && (
+                    <MiniMapa x={parseCoords(step.coords)!.x} y={parseCoords(step.coords)!.y} />
+                  )}
+                  <Capturas files={step.capturas ?? []} alt={step.title} />
+                </div>
               )}
               {step.notes && (
                 <p class="step__notes">
@@ -102,6 +109,12 @@ const fmtCoords = (c: string) => {
       })
     }
   </ol>
+
+  <!-- Visor de capturas ampliadas (uno solo para toda la guía) -->
+  <dialog class="visor" data-visor aria-label="Captura ampliada">
+    <img data-visor-img alt="Captura ampliada del paso" />
+    <form method="dialog"><button class="btn btn--ghost visor__close">Cerrar ✕</button></form>
+  </dialog>
 
   <div class="actions">
     <button type="button" class="btn btn--danger" data-reset>Reiniciar progreso de esta guía</button>
@@ -272,6 +285,44 @@ const fmtCoords = (c: string) => {
     color: var(--yellow);
     font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
   }
+  /* Mini mapa y capturas lado a lado cuando hay espacio */
+  .step__visual {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 0 1rem;
+  }
+  .step__visual > :global(*) {
+    flex: 1 1 260px;
+    max-width: 340px;
+  }
+  .step__visual :global(.capturas) {
+    margin-top: 0.75rem;
+  }
+
+  .visor {
+    max-width: min(96vw, 1200px);
+    padding: 0.6rem;
+    border: var(--line);
+    border-radius: 14px;
+    background: var(--card);
+    box-shadow: var(--pop-lg);
+  }
+  .visor::backdrop {
+    background: rgb(43 26 14 / 0.75);
+  }
+  .visor img {
+    display: block;
+    max-width: 100%;
+    max-height: 78vh;
+    border-radius: 8px;
+  }
+  .visor form {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0.6rem;
+  }
+
   /* Nota como burbuja de chat */
   .step__notes {
     position: relative;
@@ -395,6 +446,19 @@ const fmtCoords = (c: string) => {
         if (e.key !== progressKey(this.slug)) return;
         this.done = new Set([...loadProgress(this.slug)].filter((id) => valid.has(id)));
         this.render();
+      });
+
+      // Capturas: clic en la miniatura abre el visor; clic fuera de la imagen lo cierra.
+      const visor = this.querySelector<HTMLDialogElement>('[data-visor]')!;
+      const visorImg = this.querySelector<HTMLImageElement>('[data-visor-img]')!;
+      this.querySelectorAll<HTMLButtonElement>('[data-captura]').forEach((btn) =>
+        btn.addEventListener('click', () => {
+          visorImg.src = btn.dataset.captura!;
+          visor.showModal();
+        }),
+      );
+      visor.addEventListener('click', (e) => {
+        if (e.target === visor) visor.close();
       });
 
       this.render();

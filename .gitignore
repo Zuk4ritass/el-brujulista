@@ -22,3 +22,6 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# capturas privadas de Manuel (nunca se suben)
+public/privado/

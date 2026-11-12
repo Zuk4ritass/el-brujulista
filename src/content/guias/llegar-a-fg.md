@@ -17,6 +17,7 @@ steps:
     description: "Ve al Portal Transportador de la Ciudad de Astrub, háblale y elige «¡Quiero viajar a Frigost!». Te lleva al barco que va a Frigost."
     map: Astrub (Ciudad de Astrub)
     coords: "4, -19"
+    capturas: [llegar-a-fg-portal.webp] # en public/privado/capturas/ (fuera de git)
     notes: POR COMPLETAR
   - id: paso-2
     title: Paso 2 — POR COMPLETAR

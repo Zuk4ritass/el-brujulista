@@ -1,0 +1,92 @@
+---
+// Capturas propias de un paso (las saca Manuel jugando). Viven en public/privado/capturas/,
+// carpeta ignorada por git: se ven en tu PC con `npm run dev`, pero nunca se suben.
+// Si falta un archivo, se avisa en vez de mostrar una imagen rota.
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+
+interface Props {
+  files: string[];
+  /** Texto alternativo base, ej. el título del paso. */
+  alt: string;
+}
+const { files, alt } = Astro.props;
+const dir = join(process.cwd(), 'public', 'privado', 'capturas');
+const items = files.map((f) => ({ file: f, ok: existsSync(join(dir, f)), src: `/privado/capturas/${f}` }));
+---
+
+{
+  items.length > 0 && (
+    <div class="capturas">
+      {items.map((it, i) =>
+        it.ok ? (
+          <button type="button" class="capturas__thumb" data-captura={it.src} aria-label={`Ampliar captura ${i + 1}: ${alt}`}>
+            <img src={it.src} alt="" loading="lazy" decoding="async" />
+            <span class="capturas__zoom" aria-hidden="true">⤢</span>
+          </button>
+        ) : (
+          <p class="capturas__missing">
+            Falta la captura <code>{it.file}</code> en <code>public/privado/capturas/</code>
+          </p>
+        ),
+      )}
+    </div>
+  )
+}
+
+<style>
+  .capturas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 0.75rem;
+  }
+  .capturas__thumb {
+    position: relative;
+    display: block;
+    width: min(100%, 340px);
+    padding: 0;
+    overflow: hidden;
+    border: var(--line);
+    border-radius: 12px;
+    background: var(--ink);
+    box-shadow: 3px 3px 0 var(--ink);
+    cursor: zoom-in;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .capturas__thumb:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 5px 5px 0 var(--ink);
+  }
+  .capturas__thumb img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+  }
+  .capturas__zoom {
+    position: absolute;
+    right: 0.4rem;
+    bottom: 0.4rem;
+    display: grid;
+    place-items: center;
+    width: 1.8rem;
+    height: 1.8rem;
+    border: 2px solid var(--ink);
+    border-radius: 8px;
+    background: var(--yellow);
+    color: var(--ink);
+    font-weight: 900;
+  }
+  .capturas__missing {
+    margin: 0;
+    padding: 0.4rem 0.7rem;
+    border: 2px dashed var(--ink-soft);
+    border-radius: 10px;
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+  }
+  .capturas__missing code {
+    font-size: 0.85em;
+  }
+</style>

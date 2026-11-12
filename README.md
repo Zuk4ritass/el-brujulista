@@ -111,6 +111,19 @@ La guía debe ir directo a la acción:
 - **`description`:** una o dos frases.
 - **`map`, `coords` y `reward`:** se muestran como chips. Si `coords` es un par de números (`"-12, 25"` o `"[-12,25]"`), sale como placa `[-12, 25]` y debajo un **mini mapa** propio centrado en esa casilla.
 
+### Capturas propias (privadas)
+
+Cada paso puede mostrar tus capturas del juego al lado del mini mapa; al tocarlas se amplían.
+
+1. Guarda la imagen en `public/privado/capturas/` (png, jpg o webp). Esa carpeta está en `.gitignore`: **nunca se sube**, solo se ve en tu PC con `npm run dev`.
+2. En el paso, agrega el nombre del archivo:
+
+```yaml
+    capturas: [llegar-a-fg-portal.webp]
+```
+
+Si el archivo no está, el paso muestra un aviso en vez de una imagen rota.
+
 ### Mini mapa y zonas
 
 El mini mapa es un dibujo nuestro (sin imágenes del juego): una cuadrícula de 9×7 casillas centrada en la coordenada del paso, con la casilla marcada y los números de x/y en los bordes. Las zonas se pintan según `src/data/zonas.ts`, que llenas tú con lo que compruebes jugando:

@@ -17,6 +17,8 @@ const step = z.object({
   coords: z.string().optional(),
   reward: z.string().optional(),
   notes: z.string().optional(),
+  /** Capturas propias (nombres de archivo dentro de public/privado/capturas/, carpeta fuera de git). */
+  capturas: z.array(z.string().regex(/^[\w.-]+\.(png|jpe?g|webp)$/i, 'Solo el nombre del archivo, ej: mi-captura.png')).default([]),
 });
 
 const knownBug = z.object({
