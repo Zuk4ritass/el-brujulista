@@ -1,5 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
+import { u } from '../lib/url';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import GuidePoster from '../components/GuidePoster.astro';
 import PosterRow from '../components/PosterRow.astro';
@@ -51,7 +52,7 @@ const categories = [...new Set(guias.map((g) => g.data.category))] as Category[]
         {guias.map((g, i) => <GuidePoster guia={g} eager={i < 4} />)}
       </ul>
       <p class="all__more">
-        ¿No está lo que buscas? <a href="/sugerir/">Pídenos esa guía</a>
+        ¿Aún no ves lo que buscas? <a href={u('/sugerir/')}>Pídenos esa guía</a>
       </p>
     </section>
   </div>
@@ -132,15 +133,16 @@ const categories = [...new Set(guias.map((g) => g.data.category))] as Category[]
     color: var(--ink);
     font: 400 1rem/1 var(--font-display);
     cursor: pointer;
-    box-shadow: 2px 2px 0 var(--ink);
+    box-shadow: 2px 2px 0 var(--shadow);
     transition: transform 0.1s ease, box-shadow 0.1s ease;
   }
   .tab:hover {
     transform: translate(-1px, -1px);
-    box-shadow: 3px 3px 0 var(--ink);
+    box-shadow: 3px 3px 0 var(--shadow);
   }
   .tab[aria-pressed='true'] {
     background: var(--yellow);
+    color: var(--on-accent);
     transform: translate(2px, 2px);
     box-shadow: none;
   }
@@ -154,9 +156,11 @@ const categories = [...new Set(guias.map((g) => g.data.category))] as Category[]
   }
   .tab--ruta[aria-pressed='true'] {
     background: var(--teal);
+  color: var(--on-accent);
   }
   .tab--tip[aria-pressed='true'] {
     background: var(--green);
+  color: var(--on-accent);
   }
 
   .grid {

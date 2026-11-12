@@ -1,0 +1,123 @@
+---
+// Fila de objetos de un paso ("Necesitas" o "Recompensa"): sprite + cantidad + nombre.
+// Los sprites viven en public/sprites/objetos/<carpeta>/<archivo>.webp y los copia `npm run sprites`.
+// Si falta el sprite (o no se indicó), se dibuja una bolsita propia en vez de una imagen rota.
+import { existsSync } from 'node:fs';
+import { u } from '../lib/url';
+import { join } from 'node:path';
+import GameText from './GameText.astro';
+
+interface Item {
+  nombre: string;
+  cantidad?: number;
+  sprite?: string;
+}
+interface Props {
+  label: string;
+  items: Item[];
+  tone?: 'need' | 'reward';
+}
+const { label, items, tone = 'need' } = Astro.props;
+const dir = join(process.cwd(), 'public', 'sprites', 'objetos');
+const rows = items.map((it) => {
+  const src = it.sprite && existsSync(join(dir, `${it.sprite}.webp`)) ? u(`/sprites/objetos/${it.sprite}.webp`) : null;
+  return { ...it, src };
+});
+---
+
+{
+  rows.length > 0 && (
+    <div class:list={['items', `items--${tone}`]}>
+      <p class="items__label">{label}</p>
+      <ul class="items__list">
+        {rows.map((it) => (
+          <li class="item">
+            <span class="item__slot">
+              {it.src ? (
+                <img src={it.src} alt="" width="48" height="48" loading="lazy" decoding="async" />
+              ) : (
+                <svg viewBox="0 0 48 48" aria-hidden="true" class="item__placeholder">
+                  <path d="M17 15c0-4 3-7 7-7s7 3 7 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+                  <path d="M12 18h24l3 20a4 4 0 0 1-4 4H13a4 4 0 0 1-4-4z" fill="#ecdcb4" stroke="currentColor" stroke-width="3" stroke-linejoin="round" />
+                  <text x="24" y="36" text-anchor="middle" font-size="13" font-weight="900" fill="currentColor">?</text>
+                </svg>
+              )}
+              {it.cantidad !== undefined && it.cantidad > 1 && <span class="item__qty">×{it.cantidad}</span>}
+            </span>
+            <span class="item__name">
+              <GameText text={it.nombre} />
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+<style>
+  .items {
+    margin-top: 0.75rem;
+  }
+  .items__label {
+    margin: 0 0 0.35rem !important;
+    font-size: 0.72rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-soft);
+  }
+  .items__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.3rem 0.75rem 0.3rem 0.3rem;
+    border: 2px solid var(--ink);
+    border-radius: 10px;
+    background: var(--paper);
+  }
+  /* Casilla de inventario: el sprite dentro de un cuadro como en la bolsa del juego */
+  .item__slot {
+    position: relative;
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 3.25rem;
+    height: 3.25rem;
+    border: 2px solid var(--ink);
+    border-radius: 8px;
+    background: var(--slot);
+    color: var(--on-accent);
+  }
+  .items--reward .item__slot {
+    background: var(--slot-reward);
+  }
+  .item__slot img,
+  .item__placeholder {
+    width: 2.75rem;
+    height: 2.75rem;
+    object-fit: contain;
+  }
+  .item__qty {
+    position: absolute;
+    right: -0.45rem;
+    bottom: -0.45rem;
+    padding: 0 0.3rem;
+    border: 2px solid var(--ink);
+    border-radius: 6px;
+    background: var(--yellow);
+    color: var(--on-accent);
+    font: 400 0.85rem/1.3 var(--font-display);
+  }
+  .item__name {
+    font-weight: 800;
+    line-height: 1.2;
+  }
+</style>

@@ -5,7 +5,8 @@
  * - Clic o toque en una sugerencia lleva directo a la guía.
  */
 import { buildIndex, normalize, search, type SearchDoc } from './search';
-import { posterSvg, type ArtCategory } from './poster-art';
+import { u } from './url';
+import { posterSvg, posterSpriteHtml, type ArtCategory } from './poster-art';
 
 const MAX = 6;
 // Mismo texto que el sello de los pósters.
@@ -49,7 +50,7 @@ export function initSuggest(form: HTMLFormElement): void {
   };
 
   const go = (slug: string) => {
-    window.location.href = `/guias/${slug}/`;
+    window.location.href = u(`/guias/${slug}/`);
   };
 
   /** Resalta en el título las palabras que coinciden con lo escrito (sin importar tildes). */
@@ -99,7 +100,10 @@ export function initSuggest(form: HTMLFormElement): void {
       thumb.className = 'opt__thumb';
       thumb.setAttribute('aria-hidden', 'true');
       // posterSvg genera SVG propio (sin datos del usuario), es seguro como innerHTML
-      thumb.innerHTML = posterSvg((d.meta?.key ?? 'ruta') as ArtCategory, '', true);
+      // El sprite viene del índice generado en el build (rutas propias /sprites/...), no de lo que escribe el usuario.
+      const cat = (d.meta?.key ?? 'ruta') as ArtCategory;
+      const sprite = d.meta?.poster && /^(\/[\w-]+)?\/sprites\/[\w/-]+\.webp$/.test(d.meta.poster) ? d.meta.poster : '';
+      thumb.innerHTML = sprite ? posterSpriteHtml(cat, sprite, true) : posterSvg(cat, '', true);
       const st = STATUS[d.meta?.status ?? ''];
 
       const text = document.createElement('span');
@@ -134,7 +138,7 @@ export function initSuggest(form: HTMLFormElement): void {
 
     list.replaceChildren(...options);
     empty.hidden = options.length > 0;
-    all.href = `/guias/?q=${encodeURIComponent(q)}`;
+    all.href = u(`/guias/?q=${encodeURIComponent(q)}`);
     status.textContent = options.length
       ? `${options.length} ${options.length === 1 ? 'sugerencia' : 'sugerencias'}. Usa las flechas para elegir.`
       : 'Sin sugerencias.';
@@ -182,7 +186,7 @@ export function initSuggest(form: HTMLFormElement): void {
     if (!q) return;
     if (active >= 0 && options[active]) return go(options[active].dataset.slug!);
     // Sin sugerencias: ir al catálogo con la búsqueda.
-    window.location.href = `/guias/?q=${encodeURIComponent(q)}`;
+    window.location.href = u(`/guias/?q=${encodeURIComponent(q)}`);
   });
 
   clear.addEventListener('click', () => {

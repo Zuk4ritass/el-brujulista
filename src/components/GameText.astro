@@ -1,12 +1,23 @@
 ---
 // Muestra un texto de juego resaltando cada "POR COMPLETAR", para que se note que falta el dato.
+// Lo que va entre comillas invertidas (`.start`) se muestra como comando del chat del juego.
 interface Props {
   text: string;
 }
-const parts = Astro.props.text.split(/(POR COMPLETAR)/);
+const parts = Astro.props.text.split(/(POR COMPLETAR|`[^`]+`)/);
 ---
 
-{parts.map((p) => (p === 'POR COMPLETAR' ? <span class="pending">POR COMPLETAR</span> : p))}
+{
+  parts.map((p) =>
+    p === 'POR COMPLETAR' ? (
+      <span class="pending">POR COMPLETAR</span>
+    ) : p.startsWith('`') && p.endsWith('`') && p.length > 2 ? (
+      <kbd class="cmd">{p.slice(1, -1)}</kbd>
+    ) : (
+      p
+    ),
+  )
+}
 
 <style>
   .pending {
@@ -17,6 +28,18 @@ const parts = Astro.props.text.split(/(POR COMPLETAR)/);
     font-weight: 700;
     letter-spacing: 0.03em;
     opacity: 0.8;
+    white-space: nowrap;
+  }
+  /* Comando del chat: tecla de caricatura, igual en ambos temas */
+  .cmd {
+    display: inline-block;
+    padding: 0 0.4em;
+    border: 2px solid var(--ink);
+    border-radius: 6px;
+    background: var(--plaque);
+    color: var(--yellow);
+    box-shadow: 2px 2px 0 var(--shadow);
+    font: 700 0.9em/1.4 ui-monospace, 'Cascadia Mono', Consolas, monospace;
     white-space: nowrap;
   }
 </style>

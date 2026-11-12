@@ -23,5 +23,5 @@ pnpm-debug.log*
 # jetbrains setting folder
 .idea/
 
-# capturas privadas de Manuel (nunca se suben)
+# material de trabajo solo local (nunca se sube). Las capturas de los pasos van en public/capturas/ y sí se suben.
 public/privado/

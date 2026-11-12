@@ -41,6 +41,19 @@ function deco(cat: ArtCategory): string {
 }
 
 /**
+ * Arte con un sprite del juego en vez del dibujo de la categoría: mismo fondo y garabatos,
+ * el sprite centrado con una sombrita en el piso. `src` es una ruta propia del sitio (/sprites/...).
+ */
+export function posterSpriteHtml(cat: ArtCategory, src: string, compact = false): string {
+  const t = THEMES[cat];
+  return `<svg viewBox="0 0 200 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+<rect width="200" height="200" fill="${t.bg}"/>
+${compact ? '' : deco(cat)}
+<ellipse cx="100" cy="168" rx="${compact ? 46 : 40}" ry="9" fill="${INK}" opacity=".18"/>
+</svg><img class="poster__sprite${compact ? ' poster__sprite--compact' : ''}" src="${src}" alt="" loading="lazy" decoding="async">`;
+}
+
+/**
  * SVG completo del arte. `uid` se mantiene por compatibilidad (ya no hay degradados con id).
  * `compact` agranda el dibujo para miniaturas.
  */

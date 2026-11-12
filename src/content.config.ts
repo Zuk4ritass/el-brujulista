@@ -8,6 +8,32 @@ const kebab = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 export const CATEGORIES = ['quest', 'dungeon', 'ruta', 'tip'] as const;
 export const STATUSES = ['verificado', 'sin-verificar', 'desactualizado'] as const;
 
+/**
+ * Objeto que se usa o se gana en un paso. El nombre lo escribe Manuel tal cual sale en el juego.
+ * `sprite` = "carpeta/archivo" dentro de Sprites Trefus/Objetos (PNG 4x), ej: "2/1" (sin .png).
+ * `npm run sprites` copia al sitio solo los sprites usados (también corre solo antes de dev y build).
+ */
+const itemRef = z.object({
+  nombre: z.string().min(1),
+  cantidad: z.number().int().min(1).optional(),
+  sprite: z
+    .string()
+    .regex(/^[\w-]+\/[\w-]+$/, 'sprite es "carpeta/archivo" sin extensión, ej: 2/1')
+    .optional(),
+});
+
+/** Una de varias formas de hacer un paso ("una u otra"): se muestran lado a lado con "o" entre ellas. */
+const opcion = z.object({
+  title: z.string().min(1),
+  description: z.string().min(1),
+  map: z.string().optional(),
+  coords: z.string().optional(),
+  notes: z.string().optional(),
+  objetos: z.array(itemRef).default([]),
+  recompensas: z.array(itemRef).default([]),
+  capturas: z.array(z.string().regex(/^[\w.-]+\.(png|jpe?g|webp)$/i, 'Solo el nombre del archivo, ej: mi-captura.png')).default([]),
+});
+
 const step = z.object({
   /** Opcional. Si no se pone, se deriva del título. Úsalo para que el progreso no se pierda al renombrar el paso. */
   id: z.string().regex(kebab, 'El id del paso debe ser kebab-case (ej: hablar-con-npc)').optional(),
@@ -17,8 +43,14 @@ const step = z.object({
   coords: z.string().optional(),
   reward: z.string().optional(),
   notes: z.string().optional(),
-  /** Capturas propias (nombres de archivo dentro de public/privado/capturas/, carpeta fuera de git). */
+  /** Lo que necesitas o debes usar en este paso (se muestra con su sprite). */
+  objetos: z.array(itemRef).default([]),
+  /** Lo que ganas en este paso. Puede convivir con `reward` (texto libre, ej. experiencia o kamas). */
+  recompensas: z.array(itemRef).default([]),
+  /** Capturas propias (nombres de archivo dentro de public/capturas/; se publican con el sitio). */
   capturas: z.array(z.string().regex(/^[\w.-]+\.(png|jpe?g|webp)$/i, 'Solo el nombre del archivo, ej: mi-captura.png')).default([]),
+  /** Caminos alternativos para cumplir el paso (mínimo 2): el jugador elige uno. */
+  opciones: z.array(opcion).min(2).optional(),
 });
 
 const knownBug = z.object({
@@ -56,6 +88,14 @@ const guias = defineCollection({
       featured: z.boolean().default(false),
       /** Imagen de portada opcional (ruta relativa al .md). Sin ella se genera una automáticamente. */
       cover: image().optional(),
+      /**
+       * Sprite del juego para el póster, sobre el fondo de la categoría. Ruta dentro de public/sprites/ sin extensión:
+       * "objetos/15/825" (objeto; lo copia `npm run sprites`) o "npcs/<gfx>" (NPC, archivo ya en public/sprites/npcs/).
+       */
+      poster: z
+        .string()
+        .regex(/^(objetos\/[\w-]+\/[\w-]+|npcs\/[\w-]+)$/, 'poster es "objetos/carpeta/archivo" o "npcs/archivo", sin extensión')
+        .optional(),
       requirements: z.array(z.string()).default([]),
       steps: z.array(step).min(1),
       knownBugs: z.array(knownBug).default([]),

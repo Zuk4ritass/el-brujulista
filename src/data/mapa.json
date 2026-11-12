@@ -1,0 +1,11 @@
+{
+  "_comentario": "Mapa del mundo extraído del cliente (clips/maps/0.swf). Cada casilla del juego mide 40x23 px; la casilla [x, y] empieza en el píxel ((x - origenX) * 40, (y - origenY) * 23). Verificado contra el mapa de dofus-retro.co. ventanaX/Y = casillas a cada lado que trae cada recorte (el máximo alejamiento del zoom). zooms = casillas visibles a cada lado (horizontal) en cada nivel de zoom; zoomInicial es el índice del nivel por defecto.",
+  "casillaAncho": 40,
+  "casillaAlto": 23,
+  "origenX": -90,
+  "origenY": -120,
+  "ventanaX": 13,
+  "ventanaY": 12,
+  "zooms": [2, 4, 7, 12],
+  "zoomInicial": 1
+}

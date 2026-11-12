@@ -1,25 +1,39 @@
 ---
-// Mini mapa dibujado por nosotros: cuadrícula centrada en una coordenada, con las zonas
-// que Manuel registró en src/data/zonas.ts. No usa imágenes del juego.
-// Las casillas sin zona registrada se ven como papel en blanco (no inventamos geografía).
+// Mini mapa compacto: el mapa real del juego alrededor de la coordenada, con la casilla marcada
+// y botones para acercar/alejar (el zoom siempre queda centrado en la casilla del paso).
+// Fondo: recorte del mapa del mundo (public/mapa/recortes/<x>_<y>.webp, lo genera `npm run mapa`).
+// Si no hay recorte, se dibujan las zonas de src/data/zonas.ts (sin inventar geografía).
+// Muestra la coordenada y el nombre de la región una sola vez, en la cabecera.
+import { existsSync } from 'node:fs';
+import { u } from '../lib/url';
+import { join } from 'node:path';
+import GameText from './GameText.astro';
 import { ZONAS, type Terreno, type Zona } from '../data/zonas';
-import { MAPA, calibracion } from '../data/mapa';
+import cfg from '../data/mapa.json';
 
 interface Props {
   x: number;
   y: number;
+  /** Nombre de la región (el campo `map` del paso). Si falta, se usa la zona registrada. */
+  nombre?: string;
 }
-const { x, y } = Astro.props;
+const { x, y, nombre } = Astro.props;
 
-const RX = 4; // casillas a cada lado (horizontal)
-const RY = 3; // casillas arriba y abajo
-const C = 30; // tamaño de casilla en px del SVG
-const L = 30; // margen para los números del eje y
-const T = 20; // margen para los números del eje x
-const cols = RX * 2 + 1;
-const rows = RY * 2 + 1;
-const W = L + cols * C + 6;
-const H = T + rows * C + 6;
+const CW = cfg.casillaAncho;
+const CH = cfg.casillaAlto;
+const VX = cfg.ventanaX;
+const VY = cfg.ventanaY;
+const ASPECT = 0.5; // alto / ancho de la vista
+const W = (VX * 2 + 1) * CW; // tamaño total del recorte
+const H = (VY * 2 + 1) * CH;
+const cx = (VX + 0.5) * CW; // centro de la casilla del paso
+const cy = (VY + 0.5) * CH;
+const zooms = cfg.zooms;
+const box = (hx: number) => {
+  const w = (hx * 2 + 1) * CW;
+  const h = w * ASPECT;
+  return `${cx - w / 2} ${cy - h / 2} ${w} ${h}`;
+};
 
 const FILL: Record<Terreno, string> = {
   pasto: '#a9d66a',
@@ -31,140 +45,205 @@ const FILL: Record<Terreno, string> = {
   ciudad: '#d9c3a0',
   pantano: '#8fa86a',
 };
-
-const inside = (z: Zona, cx: number, cy: number) =>
-  cx >= Math.min(z.desde[0], z.hasta[0]) &&
-  cx <= Math.max(z.desde[0], z.hasta[0]) &&
-  cy >= Math.min(z.desde[1], z.hasta[1]) &&
-  cy <= Math.max(z.desde[1], z.hasta[1]);
+const inside = (z: Zona, a: number, b: number) =>
+  a >= Math.min(z.desde[0], z.hasta[0]) &&
+  a <= Math.max(z.desde[0], z.hasta[0]) &&
+  b >= Math.min(z.desde[1], z.hasta[1]) &&
+  b <= Math.max(z.desde[1], z.hasta[1]);
 // La última zona de la lista que contiene la casilla gana.
-const zoneAt = (cx: number, cy: number) => [...ZONAS].reverse().find((z) => inside(z, cx, cy));
+const zoneAt = (a: number, b: number) => [...ZONAS].reverse().find((z) => inside(z, a, b));
+const region = nombre ?? zoneAt(x, y)?.nombre ?? 'Zona: POR COMPLETAR';
 
-const px = (cx: number) => L + (cx - (x - RX)) * C;
-const py = (cy: number) => T + (cy - (y - RY)) * C;
+const recorte = `${x}_${y}.webp`;
+const bg = existsSync(join(process.cwd(), 'public', 'mapa', 'recortes', recorte)) ? u(`/mapa/recortes/${recorte}`) : null;
 
-const cells = [] as { cx: number; cy: number; fill: string }[];
-for (let cy = y - RY; cy <= y + RY; cy++)
-  for (let cx = x - RX; cx <= x + RX; cx++) {
-    const z = zoneAt(cx, cy);
-    cells.push({ cx, cy, fill: z ? FILL[z.terreno] : '#f3e8cc' });
-  }
-
-// Nombres de zona: uno por zona visible, en el centro de su parte visible, si cabe (2+ casillas de ancho).
-const labels = ZONAS.map((z) => {
-  const x1 = Math.max(Math.min(z.desde[0], z.hasta[0]), x - RX);
-  const x2 = Math.min(Math.max(z.desde[0], z.hasta[0]), x + RX);
-  const y1 = Math.max(Math.min(z.desde[1], z.hasta[1]), y - RY);
-  const y2 = Math.min(Math.max(z.desde[1], z.hasta[1]), y + RY);
-  if (x1 > x2 || y1 > y2 || x2 - x1 < 1) return null;
-  return { text: z.nombre, lx: (px(x1) + px(x2) + C) / 2, ly: (py(y1) + py(y2) + C) / 2 };
-}).filter(Boolean) as { text: string; lx: number; ly: number }[];
-
-const here = zoneAt(x, y);
-
-// Fondo: tu imagen del mapa (privada), solo en tu PC y solo si ya está calibrada en /calibrar.
-const cal = import.meta.env.DEV ? calibracion(MAPA) : null;
-const bg = cal
-  ? (() => {
-      const kx = C / cal.sx;
-      const ky = C / cal.sy;
-      const c = cal.centro(x, y);
-      const gx = px(x) + C / 2;
-      const gy = py(y) + C / 2;
-      return { href: MAPA.imagen, x: gx - c.px * kx, y: gy - c.py * ky, w: MAPA.ancho * kx, h: MAPA.alto * ky };
-    })()
-  : null;
-const clipId = `mm-${x}-${y}`.replace(/-/g, '_');
-const xs = Array.from({ length: cols }, (_, i) => x - RX + i);
-const ys = Array.from({ length: rows }, (_, i) => y - RY + i);
+// Sin fondo: casillas coloreadas según las zonas registradas.
+const cells = bg
+  ? []
+  : Array.from({ length: (VX * 2 + 1) * (VY * 2 + 1) }, (_, i) => {
+      const col = i % (VX * 2 + 1);
+      const row = Math.floor(i / (VX * 2 + 1));
+      const z = zoneAt(x - VX + col, y - VY + row);
+      return { col, row, fill: z ? FILL[z.terreno] : '#f3e8cc' };
+    });
+// Cuadrícula en un solo trazo
+let grid = '';
+for (let c = 0; c <= VX * 2 + 1; c++) grid += `M${c * CW} 0V${H}`;
+for (let r = 0; r <= VY * 2 + 1; r++) grid += `M0 ${r * CH}H${W}`;
 ---
 
-<figure class="minimapa">
-  <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Mini mapa centrado en la coordenada ${x}, ${y}`}>
-    <g font-family="ui-monospace, Consolas, monospace" font-size="10" fill="#6b5238" text-anchor="middle">
-      {xs.map((cx) => <text x={px(cx) + C / 2} y={T - 6} font-weight={cx === x ? 900 : 400} fill={cx === x ? '#2b1a0e' : undefined}>{cx}</text>)}
-      {ys.map((cy) => <text x={L - 15} y={py(cy) + C / 2 + 3.5} font-weight={cy === y ? 900 : 400} fill={cy === y ? '#2b1a0e' : undefined}>{cy}</text>)}
-    </g>
-    {
-      bg && (
-        <>
-          <defs>
-            <clipPath id={clipId}>
-              <rect x={L} y={T} width={cols * C} height={rows * C} rx="4" />
-            </clipPath>
-          </defs>
-          <rect x={L} y={T} width={cols * C} height={rows * C} fill="#7f7f7f" />
-          <image href={bg.href} x={bg.x} y={bg.y} width={bg.w} height={bg.h} clip-path={`url(#${clipId})`} preserveAspectRatio="none" style="image-rendering: pixelated" />
-        </>
-      )
-    }
-    <g stroke={bg ? '#fffaf0' : '#2b1a0e'} stroke-opacity={bg ? '.35' : '.22'} stroke-width="1">
-      {cells.map((c) => (
-        <rect x={px(c.cx)} y={py(c.cy)} width={C} height={C} fill={bg ? 'none' : c.fill} />
-      ))}
-    </g>
-    <rect x={L} y={T} width={cols * C} height={rows * C} fill="none" stroke="#2b1a0e" stroke-width="3" rx="4"></rect>
-    {
-      labels.map((l) => (
-        <text x={l.lx} y={l.ly + 4} text-anchor="middle" font-family="Lilita One, sans-serif" font-size="12" fill="#2b1a0e" stroke="#fffaf0" stroke-width="3" paint-order="stroke">
-          {l.text}
-        </text>
-      ))
-    }
-    <!-- Casilla del paso -->
-    <rect class="minimapa__here" x={px(x) + 2} y={py(y) + 2} width={C - 4} height={C - 4} rx="4" fill="#ffd23f" stroke="#2b1a0e" stroke-width="3"></rect>
-    <path d={`M${px(x) + C / 2} ${py(y) + 7}l6 8-6 8-6-8z`} fill="#e2574c" stroke="#2b1a0e" stroke-width="2" stroke-linejoin="round"></path>
-    <!-- Norte -->
-    <g transform={`translate(${W - 16} ${T + 14})`} font-family="Lilita One, sans-serif" font-size="11" text-anchor="middle">
-      <circle r="10" fill="#fffaf0" stroke="#2b1a0e" stroke-width="2"></circle>
-      <text y="4" fill="#2b1a0e">N</text>
-    </g>
-  </svg>
-  <figcaption>
+<mini-mapa class="minimapa" data-zooms={JSON.stringify(zooms)} data-zoom={cfg.zoomInicial} data-cx={cx} data-cy={cy} data-cw={CW} data-aspect={ASPECT}>
+  <p class="minimapa__head">
+    <span class="minimapa__region"><GameText text={region} /></span>
     <span class="minimapa__coords">[{x}, {y}]</span>
-    {here ? <span>{here.nombre}</span> : <span class="pending">Zona: POR COMPLETAR</span>}
-  </figcaption>
-</figure>
+  </p>
+  <div class="minimapa__view">
+    <svg viewBox={box(zooms[cfg.zoomInicial])} preserveAspectRatio="xMidYMid slice" role="img" aria-label={`Mapa alrededor de la coordenada ${x}, ${y}`} data-svg>
+      <rect width={W} height={H} fill="#7f7f7f"></rect>
+      {bg && <image href={bg} width={W} height={H} preserveAspectRatio="none" />}
+      {cells.map((c) => <rect x={c.col * CW} y={c.row * CH} width={CW} height={CH} fill={c.fill} />)}
+      <path d={grid} fill="none" stroke={bg ? '#fffaf0' : '#2b1a0e'} stroke-opacity={bg ? '.35' : '.2'} stroke-width="1" vector-effect="non-scaling-stroke"></path>
+      <rect class="minimapa__here" x={VX * CW} y={VY * CH} width={CW} height={CH} fill="#ffd23f66" stroke="#ffd23f" stroke-width="3" vector-effect="non-scaling-stroke"></rect>
+      <rect x={VX * CW} y={VY * CH} width={CW} height={CH} fill="none" stroke="#2b1a0e" stroke-width="1.5" vector-effect="non-scaling-stroke"></rect>
+    </svg>
+    <!-- Pin fuera del SVG: mantiene su tamaño en cualquier zoom (la casilla del paso siempre está al centro) -->
+    <svg class="minimapa__pin" viewBox="-10 -26 20 27" aria-hidden="true">
+      <path d="M0 0c-5-7-9-10-9-15a9 9 0 0 1 18 0c0 5-4 8-9 15z" fill="#e2574c" stroke="#2b1a0e" stroke-width="2" stroke-linejoin="round"></path>
+      <circle cy="-15" r="3.2" fill="#fffaf0" stroke="#2b1a0e" stroke-width="1.5"></circle>
+    </svg>
+    <div class="minimapa__zoom" data-controls hidden>
+      <button type="button" data-in aria-label="Acercar el mapa">+</button>
+      <button type="button" data-out aria-label="Alejar el mapa">−</button>
+    </div>
+  </div>
+</mini-mapa>
 
 <style>
   .minimapa {
-    max-width: 340px;
+    display: block;
+    max-width: 320px;
     margin: 0.75rem 0 0;
-    padding: 0.5rem 0.5rem 0.55rem;
+    padding: 0.45rem;
     border: var(--line);
     border-radius: 12px;
     background: var(--card);
-    box-shadow: 3px 3px 0 var(--ink);
+    box-shadow: 3px 3px 0 var(--shadow);
   }
-  .minimapa svg {
+  /* Región a la izquierda (lo principal), coordenada pequeña a la derecha */
+  .minimapa__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin: 0 0.1rem 0.4rem !important;
+    font-weight: 800;
+    line-height: 1.25;
+  }
+  .minimapa__region {
+    min-width: 0;
+    font-size: 0.88rem;
+  }
+  .minimapa__coords {
+    flex: none;
+    padding: 0 0.35rem;
+    border-radius: 5px;
+    background: var(--plaque);
+    color: var(--yellow);
+    font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+    font-size: 0.78rem;
+  }
+  .minimapa__view {
+    position: relative;
+    aspect-ratio: 2 / 1;
+    overflow: hidden;
+    border: 2px solid var(--ink);
+    border-radius: 8px;
+    background: #7f7f7f;
+  }
+  .minimapa__view > svg[data-svg] {
     display: block;
     width: 100%;
-    height: auto;
+    height: 100%;
   }
   .minimapa__here {
     animation: pulse 1.6s ease-in-out infinite;
-    transform-box: fill-box;
-    transform-origin: center;
   }
   @keyframes pulse {
     50% {
-      scale: 0.88;
+      fill-opacity: 0.15;
     }
   }
-  figcaption {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.4rem 0.6rem;
-    margin-top: 0.35rem;
-    font-weight: 800;
-    font-size: 0.9rem;
+  .minimapa__pin {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 22px;
+    translate: -50% -100%;
+    margin-top: 2px;
+    filter: drop-shadow(0 2px 0 var(--rule));
+    pointer-events: none;
   }
-  .minimapa__coords {
-    padding: 0 0.45rem;
-    border-radius: 6px;
-    background: var(--ink);
-    color: var(--yellow);
-    font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  .minimapa__zoom {
+    position: absolute;
+    right: 0.35rem;
+    bottom: 0.35rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .minimapa__zoom button {
+    display: grid;
+    place-items: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    padding: 0;
+    border: 2px solid var(--ink);
+    border-radius: 7px;
+    background: var(--card);
+    color: var(--ink);
+    font: 400 1.15rem/1 var(--font-display);
+    box-shadow: 2px 2px 0 var(--shadow);
+    cursor: pointer;
+  }
+  .minimapa__zoom button:hover:not(:disabled) {
+    background: var(--yellow);
+  color: var(--on-accent);
+  }
+  .minimapa__zoom button:disabled {
+    opacity: 0.4;
+    cursor: default;
+    box-shadow: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .minimapa__here {
+      animation: none;
+    }
   }
 </style>
+
+<script>
+  // Acercar/alejar: cambia la vista del SVG con una animación corta, siempre centrada en la casilla del paso.
+  class MiniMapa extends HTMLElement {
+    connectedCallback() {
+      const svg = this.querySelector<SVGSVGElement>('[data-svg]')!;
+      const btnIn = this.querySelector<HTMLButtonElement>('[data-in]')!;
+      const btnOut = this.querySelector<HTMLButtonElement>('[data-out]')!;
+      const zooms: number[] = JSON.parse(this.dataset.zooms!);
+      const cx = Number(this.dataset.cx), cy = Number(this.dataset.cy);
+      const cw = Number(this.dataset.cw), aspect = Number(this.dataset.aspect);
+      let level = Number(this.dataset.zoom);
+      let current = (zooms[level] * 2 + 1) * cw;
+      let raf = 0;
+
+      const apply = (w: number) => {
+        const h = w * aspect;
+        svg.setAttribute('viewBox', `${cx - w / 2} ${cy - h / 2} ${w} ${h}`);
+      };
+      const go = (next: number) => {
+        level = Math.max(0, Math.min(zooms.length - 1, next));
+        btnIn.disabled = level === 0;
+        btnOut.disabled = level === zooms.length - 1;
+        const from = current, to = (zooms[level] * 2 + 1) * cw;
+        cancelAnimationFrame(raf);
+        if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          current = to;
+          return apply(to);
+        }
+        const t0 = performance.now();
+        const step = (t: number) => {
+          const k = Math.min(1, (t - t0) / 220);
+          current = from + (to - from) * (1 - (1 - k) ** 3);
+          apply(current);
+          if (k < 1) raf = requestAnimationFrame(step);
+        };
+        raf = requestAnimationFrame(step);
+      };
+
+      btnIn.addEventListener('click', () => go(level - 1));
+      btnOut.addEventListener('click', () => go(level + 1));
+      this.querySelector<HTMLElement>('[data-controls]')!.hidden = false;
+      go(level);
+    }
+  }
+  customElements.define('mini-mapa', MiniMapa);
+</script>

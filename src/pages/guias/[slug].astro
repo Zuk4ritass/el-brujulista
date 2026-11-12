@@ -2,6 +2,7 @@
 // Página de guía, versión directa: título, progreso, lo que necesitas y los pasos.
 // El contexto extra queda plegado; los bugs, compactos al final.
 import { getCollection, render, type CollectionEntry } from 'astro:content';
+import { u } from '../../lib/url';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import VerificationBadge from '../../components/VerificationBadge.astro';
 import StepChecklist from '../../components/StepChecklist.astro';
@@ -24,7 +25,7 @@ const description = data.summary.includes('POR COMPLETAR') ? `Guía paso a paso:
 
 <BaseLayout title={data.title} description={description}>
   <div class="container page guide">
-    <a class="back" href="/guias/">← Guías</a>
+    <a class="back" href={u('/guias/')}>← Guías</a>
 
     {
       data.example && (
@@ -96,7 +97,7 @@ const description = data.summary.includes('POR COMPLETAR') ? `Guía paso a paso:
     color: #fff;
     font-size: 0.95rem;
     font-weight: 700;
-    box-shadow: 2px 2px 0 var(--ink);
+    box-shadow: 2px 2px 0 var(--shadow);
   }
   .guide-head {
     margin-bottom: 0.75rem;
@@ -133,7 +134,7 @@ const description = data.summary.includes('POR COMPLETAR') ? `Guía paso a paso:
 
   .more {
     margin-top: 0.9rem;
-    border: 2px dashed rgb(43 26 14 / 0.5);
+    border: 2px dashed var(--rule);
     border-radius: 10px;
   }
   .more summary {

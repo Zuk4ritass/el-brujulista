@@ -5,7 +5,13 @@ import GameText from './GameText.astro';
 import { stepId } from '../lib/slugify';
 import MiniMapa from './MiniMapa.astro';
 import Capturas from './Capturas.astro';
+import ItemList from './ItemList.astro';
 
+interface Item {
+  nombre: string;
+  cantidad?: number;
+  sprite?: string;
+}
 interface Step {
   id?: string;
   title: string;
@@ -15,6 +21,19 @@ interface Step {
   reward?: string;
   notes?: string;
   capturas?: string[];
+  objetos?: Item[];
+  recompensas?: Item[];
+  opciones?: Opcion[];
+}
+interface Opcion {
+  title: string;
+  description: string;
+  map?: string;
+  coords?: string;
+  notes?: string;
+  capturas?: string[];
+  objetos?: Item[];
+  recompensas?: Item[];
 }
 interface Props {
   slug: string;
@@ -56,6 +75,10 @@ const fmtCoords = (c: string) => {
       steps.map((step, i) => {
         const id = stepId(step);
         const domId = `paso-${id}`;
+        // Con coordenada válida, el mini mapa ya muestra coordenada y región: no se repiten en los chips.
+        const pos = step.coords ? parseCoords(step.coords) : null;
+        const showMap = !pos && step.map;
+        const showCoords = !pos && step.coords;
         return (
           <li class="step" id={domId} data-step={id}>
             <div class="step__head">
@@ -68,15 +91,15 @@ const fmtCoords = (c: string) => {
               <p id={`${domId}-desc`}>
                 <GameText text={step.description} />
               </p>
-              {(step.map || step.coords || step.reward) && (
+              {(showMap || showCoords || step.reward) && (
                 <dl class="step__facts">
-                  {step.map && (
+                  {showMap && step.map && (
                     <div>
                       <dt>Mapa</dt>
                       <dd><GameText text={step.map} /></dd>
                     </div>
                   )}
-                  {step.coords && (
+                  {showCoords && step.coords && (
                     <div class="step__coords">
                       <dt class="visually-hidden">Coordenadas</dt>
                       <dd><GameText text={fmtCoords(step.coords)} /></dd>
@@ -90,11 +113,49 @@ const fmtCoords = (c: string) => {
                   )}
                 </dl>
               )}
-              {((step.coords && parseCoords(step.coords)) || (step.capturas?.length ?? 0) > 0) && (
+              {step.opciones && (
+                <div class="opciones" role="list" aria-label="Elige uno de estos caminos">
+                  {step.opciones.map((op, k) => {
+                    const opPos = op.coords ? parseCoords(op.coords) : null;
+                    return (
+                      <>
+                        <section class="opcion" role="listitem" aria-labelledby={`${domId}-op${k}`}>
+                          <h3 class="opcion__title" id={`${domId}-op${k}`}>
+                            <span class="opcion__tag">Opción {String.fromCharCode(65 + k)}</span>
+                            <GameText text={op.title} />
+                          </h3>
+                          <p>
+                            <GameText text={op.description} />
+                          </p>
+                          {!opPos && op.coords && (
+                            <p class="step__coords opcion__coords">
+                              <GameText text={fmtCoords(op.coords)} />
+                            </p>
+                          )}
+                          <ItemList label="Necesitas" items={op.objetos ?? []} />
+                          <ItemList label="Ganas" items={op.recompensas ?? []} tone="reward" />
+                          {(opPos || (op.capturas?.length ?? 0) > 0) && (
+                            <div class="step__visual opcion__visual">
+                              {opPos && <MiniMapa x={opPos.x} y={opPos.y} nombre={op.map} />}
+                              <Capturas files={op.capturas ?? []} alt={op.title} />
+                            </div>
+                          )}
+                          {op.notes && (
+                            <p class="step__notes">
+                              <span class="step__notes-tag">[Nota]</span> <GameText text={op.notes} />
+                            </p>
+                          )}
+                        </section>
+                      </>
+                    );
+                  })}
+                </div>
+              )}
+              <ItemList label="Necesitas" items={step.objetos ?? []} />
+              <ItemList label="Ganas" items={step.recompensas ?? []} tone="reward" />
+              {(pos || (step.capturas?.length ?? 0) > 0) && (
                 <div class="step__visual">
-                  {step.coords && parseCoords(step.coords) && (
-                    <MiniMapa x={parseCoords(step.coords)!.x} y={parseCoords(step.coords)!.y} />
-                  )}
+                  {pos && <MiniMapa x={pos.x} y={pos.y} nombre={step.map} />}
                   <Capturas files={step.capturas ?? []} alt={step.title} />
                 </div>
               )}
@@ -118,6 +179,14 @@ const fmtCoords = (c: string) => {
 
   <div class="actions">
     <button type="button" class="btn btn--danger" data-reset>Reiniciar progreso de esta guía</button>
+    <!-- Confirmación en la página (el confirm() nativo puede estar bloqueado y devolver false sin preguntar) -->
+    <div class="reset-confirm" data-reset-confirm role="group" aria-labelledby="reset-q" hidden>
+      <p id="reset-q" class="reset-confirm__q">¿Reiniciar? Se desmarcarán todos los pasos de esta guía.</p>
+      <div class="reset-confirm__btns">
+        <button type="button" class="btn btn--danger" data-reset-yes>Sí, reiniciar</button>
+        <button type="button" class="btn btn--ghost" data-reset-no>Cancelar</button>
+      </div>
+    </div>
   </div>
 </guide-checklist>
 
@@ -134,7 +203,7 @@ const fmtCoords = (c: string) => {
     margin-inline: calc(var(--gutter) * -1);
     padding: 0.6rem var(--gutter) 0.75rem;
     background: var(--paper);
-    border-bottom: 2px dashed rgb(43 26 14 / 0.35);
+    border-bottom: 2px dashed var(--rule);
   }
   .progress__row {
     display: flex;
@@ -171,7 +240,7 @@ const fmtCoords = (c: string) => {
   .progress__warn {
     margin: 0.5rem 0 0;
     font-size: 0.9rem;
-    color: #a3291f;
+    color: var(--danger);
   }
 
   .steps {
@@ -217,7 +286,7 @@ const fmtCoords = (c: string) => {
     transition: background 0.2s ease, scale 0.2s cubic-bezier(0.3, 1.8, 0.5, 1);
   }
   .step__check:hover {
-    background: #d6e6fb;
+    background: var(--soft-blue);
   }
   /* El check se dibuja "derecho" compensando el giro del rombo */
   .step__check::after {
@@ -232,10 +301,12 @@ const fmtCoords = (c: string) => {
   }
   .step__check:checked {
     background: var(--green);
+    color: var(--on-accent);
     scale: 1.08;
   }
   .step__check:checked::after {
     transform: scale(1);
+    border-color: var(--on-accent);
   }
   .step__title {
     font: 400 1.3rem/1.25 var(--font-display);
@@ -281,7 +352,7 @@ const fmtCoords = (c: string) => {
   /* Coordenadas en placa oscura, como el indicador del mapa en el juego */
   .step__facts > .step__coords {
     border-color: var(--ink);
-    background: var(--ink);
+    background: var(--plaque);
     color: var(--yellow);
     font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
   }
@@ -292,8 +363,9 @@ const fmtCoords = (c: string) => {
     align-items: flex-start;
     gap: 0 1rem;
   }
+  /* Mini mapa (para ubicarse) y captura (para reconocer el lugar) lado a lado; en móvil, uno debajo del otro */
   .step__visual > :global(*) {
-    flex: 1 1 260px;
+    flex: 1 1 240px;
     max-width: 340px;
   }
   .step__visual :global(.capturas) {
@@ -332,7 +404,7 @@ const fmtCoords = (c: string) => {
     padding: 0.35rem 0.8rem;
     border: 2px solid var(--ink);
     border-radius: 12px;
-    background: #fff;
+    background: var(--bubble);
     font-size: 0.95rem;
   }
   .step__notes::after {
@@ -344,7 +416,7 @@ const fmtCoords = (c: string) => {
     height: 12px;
     border: solid var(--ink);
     border-width: 0 2px 2px 0;
-    background: #fff;
+    background: var(--bubble);
     rotate: 45deg;
   }
   .step__notes-tag {
@@ -368,7 +440,7 @@ const fmtCoords = (c: string) => {
   }
   /* Siguiente paso pendiente: resaltado para retomar rápido. */
   .step.is-next {
-    background: #fff6d6;
+    background: var(--soft-yellow-2);
     box-shadow: var(--pop-lg);
   }
   .step.is-next .step__title::after {
@@ -379,13 +451,65 @@ const fmtCoords = (c: string) => {
     border: 2px solid var(--ink);
     border-radius: 6px;
     background: var(--yellow);
+    color: var(--on-accent);
     font: 400 0.85rem/1.4 var(--font-display);
     vertical-align: 0.2em;
     rotate: -3deg;
   }
 
+  /* Caminos alternativos de un paso: tarjetas una encima de la otra */
+  .opciones {
+    display: grid;
+    gap: 0.85rem;
+    margin-top: 0.85rem;
+  }
+  .opcion {
+    min-width: 0;
+    padding: 0.85rem 1rem;
+    border: 2px dashed var(--ink);
+    border-radius: 12px;
+    background: var(--paper);
+  }
+  .opcion > p {
+    margin: 0.35rem 0 0;
+  }
+  .opcion__title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0;
+    font-size: 1.1rem;
+  }
+  .opcion__tag {
+    padding: 0.05em 0.5em;
+    border: 2px solid var(--ink);
+    border-radius: 6px;
+    background: var(--teal);
+    color: var(--on-accent);
+    font-size: 0.8rem;
+  }
   .actions {
     margin-top: 1.5rem;
+  }
+  .reset-confirm {
+    display: grid;
+    gap: 0.75rem;
+    max-width: 34rem;
+    padding: 1rem 1.1rem;
+    border: var(--line);
+    border-radius: var(--radius);
+    background: var(--soft-red);
+    box-shadow: var(--pop);
+  }
+  .reset-confirm__q {
+    margin: 0;
+    font-weight: 800;
+  }
+  .reset-confirm__btns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -424,12 +548,32 @@ const fmtCoords = (c: string) => {
         });
       }
 
-      this.querySelector('[data-reset]')!.addEventListener('click', () => {
-        if (!confirm('¿Reiniciar el progreso de esta guía? Se desmarcarán todos los pasos.')) return;
+      // Reiniciar: el botón abre una confirmación en la página; "Sí" borra, "Cancelar" o Escape la cierran.
+      const resetBtn = this.querySelector<HTMLButtonElement>('[data-reset]')!;
+      const confirmBox = this.querySelector<HTMLElement>('[data-reset-confirm]')!;
+      const yesBtn = this.querySelector<HTMLButtonElement>('[data-reset-yes]')!;
+      const closeConfirm = (refocus: boolean) => {
+        confirmBox.hidden = true;
+        resetBtn.hidden = false;
+        if (refocus) resetBtn.focus();
+      };
+      resetBtn.addEventListener('click', () => {
+        resetBtn.hidden = true;
+        confirmBox.hidden = false;
+        yesBtn.focus();
+      });
+      this.querySelector('[data-reset-no]')!.addEventListener('click', () => closeConfirm(true));
+      confirmBox.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeConfirm(true);
+      });
+      yesBtn.addEventListener('click', () => {
         this.done.clear();
         resetProgress(this.slug);
+        closeConfirm(false);
         this.render();
-        this.steps[0]?.querySelector('input')?.focus();
+        const smooth = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+        this.steps[0]?.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'center' });
+        this.steps[0]?.querySelector('input')?.focus({ preventScroll: true });
       });
 
       this.querySelector('[data-continue]')!.addEventListener('click', (e) => {

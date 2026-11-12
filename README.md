@@ -111,11 +111,11 @@ La guía debe ir directo a la acción:
 - **`description`:** una o dos frases.
 - **`map`, `coords` y `reward`:** se muestran como chips. Si `coords` es un par de números (`"-12, 25"` o `"[-12,25]"`), sale como placa `[-12, 25]` y debajo un **mini mapa** propio centrado en esa casilla.
 
-### Capturas propias (privadas)
+### Capturas propias
 
 Cada paso puede mostrar tus capturas del juego al lado del mini mapa; al tocarlas se amplían.
 
-1. Guarda la imagen en `public/privado/capturas/` (png, jpg o webp). Esa carpeta está en `.gitignore`: **nunca se sube**, solo se ve en tu PC con `npm run dev`.
+1. Guarda la imagen en `public/capturas/` (png, jpg o webp, mejor webp). **Se publica con el sitio**: revisa que no salga nada que no quieras mostrar.
 2. En el paso, agrega el nombre del archivo:
 
 ```yaml

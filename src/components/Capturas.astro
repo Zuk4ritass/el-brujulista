@@ -1,8 +1,9 @@
 ---
-// Capturas propias de un paso (las saca Manuel jugando). Viven en public/privado/capturas/,
+// Capturas propias de un paso (las saca Zukitas jugando). Viven en public/capturas/ y se publican con el sitio.
 // carpeta ignorada por git: se ven en tu PC con `npm run dev`, pero nunca se suben.
 // Si falta un archivo, se avisa en vez de mostrar una imagen rota.
 import { existsSync } from 'node:fs';
+import { u } from '../lib/url';
 import { join } from 'node:path';
 
 interface Props {
@@ -11,11 +12,8 @@ interface Props {
   alt: string;
 }
 const { files, alt } = Astro.props;
-const dir = join(process.cwd(), 'public', 'privado', 'capturas');
-// En un build de producción no se muestran: las capturas no se publican (ver astro.config.mjs).
-const items = import.meta.env.DEV
-  ? files.map((f) => ({ file: f, ok: existsSync(join(dir, f)), src: `/privado/capturas/${f}` }))
-  : [];
+const dir = join(process.cwd(), 'public', 'capturas');
+const items = files.map((f) => ({ file: f, ok: existsSync(join(dir, f)), src: u(`/capturas/${f}`) }));
 ---
 
 {
@@ -29,7 +27,7 @@ const items = import.meta.env.DEV
           </button>
         ) : (
           <p class="capturas__missing">
-            Falta la captura <code>{it.file}</code> en <code>public/privado/capturas/</code>
+            Falta la captura <code>{it.file}</code> en <code>public/capturas/</code>
           </p>
         ),
       )}
@@ -52,20 +50,20 @@ const items = import.meta.env.DEV
     overflow: hidden;
     border: var(--line);
     border-radius: 12px;
-    background: var(--ink);
-    box-shadow: 3px 3px 0 var(--ink);
+    background: var(--plaque);
+    box-shadow: 3px 3px 0 var(--shadow);
     cursor: zoom-in;
     transition: transform 0.15s ease, box-shadow 0.15s ease;
   }
   .capturas__thumb:hover {
     transform: translate(-2px, -2px);
-    box-shadow: 5px 5px 0 var(--ink);
+    box-shadow: 5px 5px 0 var(--shadow);
   }
+  /* La captura se ve completa, con su proporción original (sin recortar) */
   .capturas__thumb img {
     display: block;
     width: 100%;
-    aspect-ratio: 16 / 10;
-    object-fit: cover;
+    height: auto;
   }
   .capturas__zoom {
     position: absolute;
@@ -78,7 +76,8 @@ const items = import.meta.env.DEV
     border: 2px solid var(--ink);
     border-radius: 8px;
     background: var(--yellow);
-    color: var(--ink);
+   color: var(--on-accent);
+    color: var(--on-accent);
     font-weight: 900;
   }
   .capturas__missing {

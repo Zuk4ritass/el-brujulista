@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { u } from '../lib/url';
 ---
 
 <BaseLayout title="Página no encontrada">
@@ -12,7 +13,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     </svg>
     <h1 class="page-title">Te perdiste del mapa</h1>
     <p class="page-lead">Esta página no existe o se movió. Vuelve al listado y elige otra guía.</p>
-    <a class="btn" href="/guias/">Ver las guías</a>
+    <a class="btn" href={u('/guias/')}>Ver las guías</a>
   </div>
 </BaseLayout>
 
@@ -27,7 +28,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   }
   .lost__map {
     width: 160px;
-    filter: drop-shadow(5px 5px 0 #2b1a0e);
+    filter: drop-shadow(5px 5px 0 var(--shadow));
     animation: sway 4s ease-in-out infinite;
   }
   @keyframes sway {

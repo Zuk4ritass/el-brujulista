@@ -1,5 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
+import { u } from '../../lib/url';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import GuidePoster from '../../components/GuidePoster.astro';
 import GuideFilters from '../../components/GuideFilters.astro';
@@ -26,7 +27,7 @@ const categories = [...new Set(guias.map((g) => g.data.category))] as Category[]
     </ul>
     <div class="empty panel" id="sin-resultados" hidden>
       <p><strong>No hay guías con esa búsqueda o filtros.</strong></p>
-      <p>¿Falta una guía? <a href="/sugerir/">Sugiérela</a> y la tendremos en cuenta.</p>
+      <p>¿Aún no ves lo que buscas? <a href={u('/sugerir/')}>Pídenos esa guía</a></p>
     </div>
   </div>
 </BaseLayout>

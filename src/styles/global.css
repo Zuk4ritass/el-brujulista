@@ -27,14 +27,65 @@
   --focus: #5b8fd6;
   --link: #b4471a;
 
+  /* Roles (cambian en modo oscuro) */
+  --shadow: var(--ink); /* sombras duras */
+  --plaque: var(--ink); /* placas oscuras con texto amarillo (coordenadas) */
+  --on-accent: #2b1a0e; /* texto sobre amarillo, verde, etc.: siempre oscuro */
+  --danger: #a3291f;
+  --verified: var(--green-dark);
+  --soft-yellow: #fff3c4;
+  --soft-yellow-2: #fff6d6;
+  --soft-blue: #d6e6fb;
+  --soft-green: #e6f4d2;
+  --soft-red: #fbe1dc;
+  --bubble: #fff;
+  --highlight: var(--yellow); /* marcador detrás de texto */
+  --rule: rgb(43 26 14 / 0.35); /* líneas punteadas */
+  --placeholder: #9c8668;
+  --slot: var(--card); /* casilla de inventario: clara en ambos temas para que se vean los sprites */
+  --slot-reward: var(--soft-yellow);
+
   --font-display: 'Lilita One', 'Arial Rounded MT Bold', system-ui, sans-serif;
   --font-body: 'Nunito Variable', system-ui, sans-serif;
 
   --radius: 14px;
-  --pop: 4px 4px 0 var(--ink);
-  --pop-lg: 6px 6px 0 var(--ink);
+  --pop: 4px 4px 0 var(--shadow);
+  --pop-lg: 6px 6px 0 var(--shadow);
   --max: 1040px;
   --gutter: clamp(1rem, 4vw, 2rem);
+}
+
+/*
+ * Modo oscuro: "cuaderno de noche". Papel café oscuro, tinta crema (texto y trazos), sombras negras.
+ * Lo activa el botón ☀/🌙 de la cabecera (data-theme en <html>); sin elección, sigue al sistema.
+ */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --paper: #1d150f;
+  --paper-2: #2a1f16;
+  --card: #2d2218;
+  --ink: #f1e4c6;
+  --ink-soft: #c2aa86;
+
+  --green-dark: #a8dc6a;
+  --focus: #8fb6ff;
+  --link: #ffad73;
+
+  --shadow: #000;
+  --plaque: #0d0905;
+  --danger: #ff8f80;
+  --soft-yellow: #4a3b14;
+  --soft-yellow-2: #3d3115;
+  --soft-blue: #2c3b52;
+  --soft-green: #2f4220;
+  --soft-red: #4d2620;
+  --bubble: #3a2c20;
+  --highlight: #8a6a10;
+  --rule: rgb(241 228 198 / 0.25);
+  --placeholder: #8f7a5c;
+  --slot: #efe2c4;
+  --slot-reward: #f6dc8a;
 }
 
 *,
@@ -64,6 +115,10 @@ body {
   color: var(--ink);
   font: 500 1.0625rem/1.6 var(--font-body);
   overflow-x: hidden;
+}
+/* Misma rejilla, en tinta crema muy tenue */
+:root[data-theme='dark'] body {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='24'%3E%3Cpath d='M24 0L48 12 24 24 0 12z' fill='none' stroke='%23f1e4c6' stroke-opacity='.05' stroke-width='1'/%3E%3C/svg%3E");
 }
 
 h1,
@@ -105,7 +160,7 @@ a {
 
 ::selection {
   background: var(--yellow);
-  color: var(--ink);
+  color: var(--on-accent);
 }
 
 .container {
@@ -133,7 +188,7 @@ a {
 }
 /* Subrayado de marcador amarillo, como resaltado a mano */
 .marker {
-  background: linear-gradient(transparent 55%, var(--yellow) 55%, var(--yellow) 90%, transparent 90%);
+  background: linear-gradient(transparent 55%, var(--highlight) 55%, var(--highlight) 90%, transparent 90%);
   padding-inline: 0.1em;
 }
 .page-lead {
@@ -155,7 +210,7 @@ a {
   border: var(--line);
   border-radius: 12px;
   background: var(--btn-bg);
-  color: var(--ink);
+  color: var(--on-accent);
   font: 400 1.1rem/1 var(--font-display);
   letter-spacing: 0.02em;
   text-decoration: none;
@@ -165,18 +220,19 @@ a {
 }
 .btn:hover {
   transform: translate(-1px, -1px);
-  box-shadow: 5px 5px 0 var(--ink);
+  box-shadow: 5px 5px 0 var(--shadow);
 }
 .btn:active {
   transform: translate(3px, 3px);
-  box-shadow: 1px 1px 0 var(--ink);
+  box-shadow: 1px 1px 0 var(--shadow);
 }
 .btn--ghost {
   --btn-bg: var(--card);
+  color: var(--ink);
 }
 .btn--danger {
   --btn-bg: var(--card);
-  color: #a3291f;
+  color: var(--danger);
 }
 .btn:disabled {
   opacity: 0.45;

@@ -6,7 +6,11 @@
     "node": ">=22.23.4"
   },
   "scripts": {
+    "sprites": "node scripts/sprites.mjs",
+    "mapa": "node scripts/mapa.mjs",
+    "predev": "node scripts/sprites.mjs && node scripts/mapa.mjs",
     "dev": "astro dev",
+    "prebuild": "node scripts/sprites.mjs && node scripts/mapa.mjs",
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",

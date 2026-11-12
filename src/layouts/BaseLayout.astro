@@ -1,5 +1,6 @@
 ---
 import '@fontsource/lilita-one';
+import { u, sinBase } from '../lib/url';
 import '@fontsource-variable/nunito';
 import '../styles/global.css';
 import { SITE } from '../config';
@@ -11,10 +12,10 @@ interface Props {
 const { title, description = 'Guías paso a paso no oficiales para el servidor Trefus.' } = Astro.props;
 const fullTitle = title === 'Inicio' ? `${SITE.name} · ${SITE.tagline}, paso a paso` : `${title} · ${SITE.name}`;
 
-const path = Astro.url.pathname;
+const path = sinBase(Astro.url.pathname);
 const nav = [
-  { href: '/guias/', label: 'Guías', match: (p: string) => p.startsWith('/guias') },
-  { href: '/sugerir/', label: 'Sugerir', match: (p: string) => p.startsWith('/sugerir') },
+  { href: u('/guias/'), label: 'Guías', match: (p: string) => p.startsWith('/guias') },
+  { href: u('/sugerir/'), label: 'Sugerir', match: (p: string) => p.startsWith('/sugerir') },
 ];
 ---
 
@@ -25,16 +26,28 @@ const nav = [
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
     <meta name="theme-color" content="#f6ecd2" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href={u('/favicon.svg')} />
     <title>{fullTitle}</title>
+    <!-- Tema antes de pintar (evita el destello claro): elección guardada o, si no hay, la del sistema -->
+    <script is:inline>
+      (() => {
+        let t = null;
+        try {
+          t = localStorage.getItem('trefus:tema');
+        } catch {}
+        if (t !== 'dark' && t !== 'light') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        document.documentElement.dataset.theme = t;
+        document.querySelector('meta[name="theme-color"]')?.setAttribute('content', t === 'dark' ? '#1d150f' : '#f6ecd2');
+      })();
+    </script>
   </head>
   <body>
     <a class="skip" href="#contenido">Saltar al contenido</a>
 
     <header class="site-header">
       <div class="container site-header__inner">
-        <a class="brand" href="/" aria-label={`${SITE.name}, inicio`}>
-          <img src="/favicon.svg" alt="" width="40" height="40" />
+        <a class="brand" href={u('/')} aria-label={`${SITE.name}, inicio`}>
+          <img src={u('/favicon.svg')} alt="" width="40" height="40" />
           <span class="brand__text">
             <span class="brand__name">{SITE.name}</span>
             <span class="brand__tag">{SITE.tagline}</span>
@@ -53,6 +66,17 @@ const nav = [
             }
           </ul>
         </nav>
+        <button type="button" class="theme-toggle" data-theme-toggle aria-label="Cambiar a modo oscuro" title="Modo oscuro / claro">
+          <!-- Luna (se ve en modo claro) -->
+          <svg class="theme-toggle__moon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5z" fill="var(--yellow)" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"></path>
+          </svg>
+          <!-- Sol (se ve en modo oscuro) -->
+          <svg class="theme-toggle__sun" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="4.5" fill="var(--yellow)" stroke="currentColor" stroke-width="2.2"></circle>
+            <path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"></path>
+          </svg>
+        </button>
       </div>
     </header>
 
@@ -68,12 +92,43 @@ const nav = [
           enlaza ningún cliente del juego.
         </p>
         <p class="site-footer__note">
-          Las guías pueden diferir de Dofus 2.x. <a href="/sugerir/">¿Falta una guía? Sugiérela</a>
+          Las guías pueden diferir de Dofus 2.x. ¿Aún no ves lo que buscas? <a href={u('/sugerir/')}>Pídenos esa guía</a>
         </p>
       </div>
     </footer>
   </body>
 </html>
+
+<script>
+  // Botón ☀/🌙: alterna y guarda la elección; sin elección guardada, sigue los cambios del sistema.
+  const KEY = 'trefus:tema';
+  const root = document.documentElement;
+  const btn = document.querySelector<HTMLButtonElement>('[data-theme-toggle]');
+  const meta = document.querySelector('meta[name="theme-color"]');
+  const set = (t: 'dark' | 'light') => {
+    root.dataset.theme = t;
+    meta?.setAttribute('content', t === 'dark' ? '#1d150f' : '#f6ecd2');
+    if (btn) {
+      btn.setAttribute('aria-label', t === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro');
+      btn.setAttribute('aria-pressed', String(t === 'dark'));
+    }
+  };
+  set(root.dataset.theme === 'dark' ? 'dark' : 'light');
+  btn?.addEventListener('click', () => {
+    const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+    set(next);
+    try {
+      localStorage.setItem(KEY, next);
+    } catch {}
+  });
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+    let saved = null;
+    try {
+      saved = localStorage.getItem(KEY);
+    } catch {}
+    if (!saved) set(e.matches ? 'dark' : 'light');
+  });
+</script>
 
 <style>
   .skip {
@@ -149,10 +204,44 @@ const nav = [
   nav a:hover {
     border-color: var(--ink);
   }
+  nav {
+    margin-left: auto;
+  }
+  .theme-toggle {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 2.6rem;
+    height: 2.6rem;
+    padding: 0;
+    border: 2px solid var(--ink);
+    border-radius: 10px;
+    background: var(--card);
+    color: var(--ink);
+    box-shadow: 2px 2px 0 var(--shadow);
+    cursor: pointer;
+    transition: transform 0.15s cubic-bezier(0.3, 1.6, 0.5, 1);
+  }
+  .theme-toggle:hover {
+    transform: rotate(-12deg);
+  }
+  .theme-toggle svg {
+    width: 1.4rem;
+    height: 1.4rem;
+  }
+  .theme-toggle__sun,
+  :global([data-theme='dark']) .theme-toggle__moon {
+    display: none;
+  }
+  :global([data-theme='dark']) .theme-toggle__sun {
+    display: block;
+  }
   nav a[aria-current='page'] {
     border-color: var(--ink);
+    color: var(--on-accent);
     background: var(--yellow);
-    box-shadow: 2px 2px 0 var(--ink);
+    color: var(--on-accent);
+    box-shadow: 2px 2px 0 var(--shadow);
   }
 
   .site-footer {

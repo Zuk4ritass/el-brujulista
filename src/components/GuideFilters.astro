@@ -60,7 +60,7 @@ const { categories } = Astro.props;
     background: var(--card);
     border: var(--line);
     border-radius: 10px;
-    box-shadow: 2px 2px 0 var(--ink);
+    box-shadow: 2px 2px 0 var(--shadow);
   }
   .filters__reset {
     font-family: var(--font-display);
@@ -69,6 +69,7 @@ const { categories } = Astro.props;
   }
   .filters__reset:hover {
     background: var(--yellow);
+  color: var(--on-accent);
   }
   select:focus-visible,
   .filters__reset:focus-visible {

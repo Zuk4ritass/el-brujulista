@@ -56,10 +56,11 @@ const { title, id, hidden = false } = Astro.props;
     font-weight: 900;
     line-height: 1;
     cursor: pointer;
-    box-shadow: 2px 2px 0 var(--ink);
+    box-shadow: 2px 2px 0 var(--shadow);
   }
   .row__btn:hover:not(:disabled) {
     background: var(--yellow);
+  color: var(--on-accent);
   }
   .row__btn:disabled {
     opacity: 0.3;

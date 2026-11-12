@@ -2,9 +2,12 @@
 // Tarjeta-póster de una guía: dibujo arriba, título abajo, como una carátula de caricatura.
 // Si la guía no trae `cover`, el dibujo se genera según la categoría (sin assets del juego).
 import { Image } from 'astro:assets';
+import { u } from '../lib/url';
 import { CATEGORY_LABELS, STATUS_LABELS, levelLabel, type Guia } from '../lib/guides';
 import { stepId } from '../lib/slugify';
-import { posterSvg } from '../lib/poster-art';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+import { posterSvg, posterSpriteHtml } from '../lib/poster-art';
 
 interface Props {
   guia: Guia;
@@ -21,6 +24,9 @@ const stamp = { verificado: '✓ Probada', 'sin-verificar': 'Sin probar', desact
 const stepIds = data.steps.map(stepId).join(',');
 const level = levelLabel(data);
 const levelText = level.includes('POR COMPLETAR') ? null : level;
+// Sprite del juego para el póster (si el archivo existe); si no, el dibujo de la categoría.
+const spriteSrc =
+  data.poster && existsSync(join(process.cwd(), 'public', 'sprites', `${data.poster}.webp`)) ? u(`/sprites/${data.poster}.webp`) : null;
 ---
 
 <li
@@ -32,11 +38,13 @@ const levelText = level.includes('POR COMPLETAR') ? null : level;
   data-level-max={data.levelMax ?? ''}
   data-step-ids={stepIds}
 >
-  <a href={`/guias/${data.slug}/`} class="poster__link">
+  <a href={u(`/guias/${data.slug}/`)} class="poster__link">
     <div class="poster__art" aria-hidden="true">
       {
         data.cover ? (
           <Image src={data.cover} alt="" widths={[240, 400]} sizes="240px" loading={eager ? 'eager' : 'lazy'} />
+        ) : spriteSrc ? (
+          <Fragment set:html={posterSpriteHtml(data.category, spriteSrc)} />
         ) : (
           <Fragment set:html={posterSvg(data.category)} />
         )
@@ -111,7 +119,7 @@ const levelText = level.includes('POR COMPLETAR') ? null : level;
   .poster__link:hover,
   .poster__link:focus-visible {
     transform: translate(-3px, -3px) rotate(-1.5deg);
-    box-shadow: 8px 8px 0 var(--ink);
+    box-shadow: 8px 8px 0 var(--shadow);
   }
   .poster:nth-child(even) .poster__link:hover,
   .poster:nth-child(even) .poster__link:focus-visible {
@@ -134,6 +142,19 @@ const levelText = level.includes('POR COMPLETAR') ? null : level;
     width: 100%;
     height: 100%;
     object-fit: cover;
+  }
+  /* Sprite del juego encima del fondo: centrado, sin recortar, y salta un poco al pasar el mouse */
+  .poster__art :global(.poster__sprite) {
+    position: absolute;
+    inset: 14% 14% 12%;
+    width: 72%;
+    height: 74%;
+    object-fit: contain;
+    filter: drop-shadow(3px 3px 0 rgb(43 26 14 / 0.35));
+    transition: transform 0.3s cubic-bezier(0.3, 1.6, 0.5, 1);
+  }
+  .poster__link:hover :global(.poster__sprite) {
+    transform: scale(1.08) rotate(-4deg);
   }
   .poster__art :global(.poster__glyph) {
     transform-origin: 100px 100px;
@@ -198,15 +219,15 @@ const levelText = level.includes('POR COMPLETAR') ? null : level;
   }
   .poster__stamp--verificado {
     color: var(--green-dark);
-    background: #e6f4d2;
+    background: var(--soft-green);
   }
   .poster__stamp--sin-verificar {
     color: var(--ink-soft);
     border-style: dashed;
   }
   .poster__stamp--desactualizado {
-    color: #a3291f;
-    background: #fbe1dc;
+    color: var(--danger);
+    background: var(--soft-red);
   }
 
   /* Barra de "ya empezaste" pegada abajo de la tarjeta */
@@ -225,5 +246,6 @@ const levelText = level.includes('POR COMPLETAR') ? null : level;
     height: 100%;
     width: 0;
     background: var(--green);
+  color: var(--on-accent);
   }
 </style>
