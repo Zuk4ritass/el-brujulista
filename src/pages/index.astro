@@ -4,6 +4,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import GuidePoster from '../components/GuidePoster.astro';
 import PosterRow from '../components/PosterRow.astro';
 import SearchBox from '../components/SearchBox.astro';
+import IsoDiorama from '../components/IsoDiorama.astro';
 import { CATEGORY_LABELS, sortGuides, type Category } from '../lib/guides';
 
 const guias = sortGuides(await getCollection('guias'));
@@ -23,30 +24,8 @@ const categories = [...new Set(guias.map((g) => g.data.category))] as Category[]
       </div>
     </div>
 
-    <!-- Brújula de aventurero (dibujo propio): la aguja oscila buscando el norte -->
-    <svg class="hero__doodle" viewBox="0 0 220 220" aria-hidden="true">
-      <g stroke="#2b1a0e" stroke-linecap="round" stroke-linejoin="round">
-        <!-- cordón de cuero -->
-        <path d="M112 44c4-26 34-36 52-24s10 38 36 34" fill="none" stroke-width="15"></path>
-        <path d="M112 44c4-26 34-36 52-24s10 38 36 34" fill="none" stroke="#9a5b2a" stroke-width="8"></path>
-        <path d="M176 22l4 8M190 50l2 8" stroke-width="3"></path>
-        <!-- argolla -->
-        <circle cx="110" cy="48" r="13" fill="#d9a35c" stroke-width="6"></circle>
-        <!-- aro de madera con vetas -->
-        <circle cx="110" cy="130" r="80" fill="#d9a35c" stroke-width="7"></circle>
-        <path d="M44 104c10-18 22-26 38-30M176 158c-10 16-22 24-38 28M156 70c10 6 17 14 21 24M52 170c6 8 12 12 20 16" fill="none" stroke="#a8692f" stroke-width="6"></path>
-        <!-- esfera -->
-        <circle cx="110" cy="130" r="54" fill="#fffaf0" stroke-width="6"></circle>
-        <path d="M110 84v10M110 166v10M64 130h10M146 130h10" stroke-width="5"></path>
-        <text x="110" y="108" text-anchor="middle" font-family="Lilita One, sans-serif" font-size="16" fill="#2b1a0e" stroke="none">N</text>
-        <!-- aguja -->
-        <g class="hero__needle">
-          <path d="M110 86l12 44h-24z" fill="#e2574c" stroke-width="5"></path>
-          <path d="M110 174l12-44h-24z" fill="#ecdcb4" stroke-width="5"></path>
-        </g>
-        <circle cx="110" cy="130" r="7" fill="#2b1a0e" stroke="none"></circle>
-      </g>
-    </svg>
+    <!-- Islita isométrica con aventurero propio (guiño a los mapas del 1.29) -->
+    <div class="hero__doodle"><IsoDiorama /></div>
   </section>
 
   <div class="container">
@@ -90,7 +69,7 @@ const categories = [...new Set(guias.map((g) => g.data.category))] as Category[]
   }
   @media (min-width: 820px) {
     .hero {
-      grid-template-columns: 1fr 240px;
+      grid-template-columns: 1fr 340px;
     }
   }
   .hero__title {
@@ -111,45 +90,16 @@ const categories = [...new Set(guias.map((g) => g.data.category))] as Category[]
   .hero__doodle {
     display: none;
     width: 100%;
-    rotate: 6deg;
-    filter: drop-shadow(5px 5px 0 #2b1a0e);
-    animation: bob 4s ease-in-out infinite;
+    animation: bob 5s ease-in-out infinite;
   }
   @media (min-width: 820px) {
     .hero__doodle {
       display: block;
     }
   }
-  /* La aguja oscila y se asienta, como buscando el norte */
-  .hero__needle {
-    transform-origin: 110px 130px;
-    animation: seek 5s cubic-bezier(0.4, 0, 0.3, 1) infinite;
-  }
   @keyframes bob {
     50% {
-      translate: 0 -8px;
-      rotate: 3deg;
-    }
-  }
-  @keyframes seek {
-    0%,
-    100% {
-      rotate: 0deg;
-    }
-    15% {
-      rotate: 40deg;
-    }
-    30% {
-      rotate: -25deg;
-    }
-    42% {
-      rotate: 12deg;
-    }
-    52% {
-      rotate: -5deg;
-    }
-    60% {
-      rotate: 0deg;
+      translate: 0 -6px;
     }
   }
 

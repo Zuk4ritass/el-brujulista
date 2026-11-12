@@ -19,6 +19,11 @@ interface Props {
 }
 const { slug, steps } = Astro.props;
 const total = steps.length;
+// "-12, 25" se muestra como placa de juego "[-12, 25]"; cualquier otro texto (ej. POR COMPLETAR) queda igual.
+const fmtCoords = (c: string) => {
+  const m = c.match(/^\s*\[?\s*(-?\d+)\s*,\s*(-?\d+)\s*\]?\s*$/);
+  return m ? `[${m[1]}, ${m[2]}]` : c;
+};
 ---
 
 <guide-checklist data-slug={slug}>
@@ -65,9 +70,9 @@ const total = steps.length;
                     </div>
                   )}
                   {step.coords && (
-                    <div>
-                      <dt>Coordenadas</dt>
-                      <dd><GameText text={step.coords} /></dd>
+                    <div class="step__coords">
+                      <dt class="visually-hidden">Coordenadas</dt>
+                      <dd><GameText text={fmtCoords(step.coords)} /></dd>
                     </div>
                   )}
                   {step.reward && (
@@ -80,7 +85,7 @@ const total = steps.length;
               )}
               {step.notes && (
                 <p class="step__notes">
-                  <strong>Nota:</strong> <GameText text={step.notes} />
+                  <span class="step__notes-tag">[Nota]</span> <GameText text={step.notes} />
                 </p>
               )}
             </div>
@@ -136,11 +141,11 @@ const total = steps.length;
     background: var(--card);
   }
   progress::-webkit-progress-value {
-    background: var(--green);
+    background: var(--blue);
     transition: width 0.35s cubic-bezier(0.3, 1.4, 0.5, 1);
   }
   progress::-moz-progress-bar {
-    background: var(--green);
+    background: var(--blue);
   }
   .progress__warn {
     margin: 0.5rem 0 0;
@@ -173,36 +178,43 @@ const total = steps.length;
     gap: 0.8rem;
   }
 
-  /* Checkbox propio, grande y fácil de tocar (sigue siendo un input nativo: teclado y lectores OK) */
+  /* Checkbox en forma de rombo, como una casilla de combate.
+     Sigue siendo un input nativo: teclado y lectores de pantalla funcionan igual. */
   .step__check {
     flex: none;
     display: grid;
     place-content: center;
-    width: 2rem;
-    height: 2rem;
-    margin: 0;
+    width: 1.75rem;
+    height: 1.75rem;
+    margin: 0.2rem 0.15rem 0;
     appearance: none;
     border: var(--line);
-    border-radius: 8px;
+    border-radius: 5px;
     background: var(--card);
-    box-shadow: 2px 2px 0 var(--ink);
+    rotate: 45deg;
     cursor: pointer;
+    transition: background 0.2s ease, scale 0.2s cubic-bezier(0.3, 1.8, 0.5, 1);
   }
+  .step__check:hover {
+    background: #d6e6fb;
+  }
+  /* El check se dibuja "derecho" compensando el giro del rombo */
   .step__check::after {
     content: '';
-    width: 0.65rem;
-    height: 1.1rem;
-    margin-top: -0.2rem;
+    width: 0.5rem;
+    height: 0.9rem;
+    margin-top: -0.15rem;
     border: solid var(--ink);
     border-width: 0 4px 4px 0;
-    transform: rotate(45deg) scale(0);
+    transform: scale(0);
     transition: transform 0.2s cubic-bezier(0.3, 1.8, 0.5, 1);
   }
   .step__check:checked {
     background: var(--green);
+    scale: 1.08;
   }
   .step__check:checked::after {
-    transform: rotate(45deg) scale(1);
+    transform: scale(1);
   }
   .step__title {
     font: 400 1.3rem/1.25 var(--font-display);
@@ -213,7 +225,7 @@ const total = steps.length;
     color: var(--orange);
   }
   .step__body {
-    padding-left: 2.8rem;
+    padding-left: 2.85rem;
   }
   .step__body p {
     margin: 0.5rem 0 0;
@@ -245,8 +257,40 @@ const total = steps.length;
     margin: 0;
     font-weight: 800;
   }
+  /* Coordenadas en placa oscura, como el indicador del mapa en el juego */
+  .step__facts > .step__coords {
+    border-color: var(--ink);
+    background: var(--ink);
+    color: var(--yellow);
+    font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  }
+  /* Nota como burbuja de chat */
   .step__notes {
-    color: var(--ink-soft);
+    position: relative;
+    display: inline-block;
+    max-width: 100%;
+    margin-top: 0.75rem !important;
+    padding: 0.35rem 0.8rem;
+    border: 2px solid var(--ink);
+    border-radius: 12px;
+    background: #fff;
+    font-size: 0.95rem;
+  }
+  .step__notes::after {
+    content: '';
+    position: absolute;
+    left: 14px;
+    bottom: -8px;
+    width: 12px;
+    height: 12px;
+    border: solid var(--ink);
+    border-width: 0 2px 2px 0;
+    background: #fff;
+    rotate: 45deg;
+  }
+  .step__notes-tag {
+    font-weight: 900;
+    color: var(--blue);
   }
 
   /* Paso completado: se pliega a solo el título, tachado y sin sombra. */
