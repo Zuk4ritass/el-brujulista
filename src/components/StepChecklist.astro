@@ -6,6 +6,7 @@ import { stepId } from '../lib/slugify';
 import MiniMapa from './MiniMapa.astro';
 import Capturas from './Capturas.astro';
 import ItemList from './ItemList.astro';
+import { u } from '../lib/url';
 
 interface Item {
   nombre: string;
@@ -24,6 +25,8 @@ interface Step {
   objetos?: Item[];
   recompensas?: Item[];
   opciones?: Opcion[];
+  figura?: { sprite: string; nombre: string };
+  turnos?: { titulo: string; texto: string; nota?: string }[];
 }
 interface Opcion {
   title: string;
@@ -88,9 +91,33 @@ const fmtCoords = (c: string) => {
               </label>
             </div>
             <div class="step__body">
+              {step.figura && (
+                <figure class="step__figura">
+                  <img src={u(`/sprites/${step.figura.sprite}.webp`)} alt={step.figura.nombre} loading="lazy" decoding="async" />
+                </figure>
+              )}
               <p id={`${domId}-desc`}>
                 <GameText text={step.description} />
               </p>
+              {step.turnos && step.turnos.length > 0 && (
+                <ol class="turnos">
+                  {step.turnos.map((t, n) => (
+                    <li class="turno">
+                      <span class="turno__num" aria-hidden="true">{n + 1}</span>
+                      <div>
+                        <p class="turno__titulo">
+                          <span class="visually-hidden">Turno {n + 1}: </span>
+                          <GameText text={t.titulo} />
+                        </p>
+                        <p class="turno__texto"><GameText text={t.texto} /></p>
+                        {t.nota && (
+                          <p class="turno__nota"><span class="step__notes-tag">[Nota]</span> <GameText text={t.nota} /></p>
+                        )}
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              )}
               {(showMap || showCoords || step.reward) && (
                 <dl class="step__facts">
                   {showMap && step.map && (
@@ -488,6 +515,78 @@ const fmtCoords = (c: string) => {
     background: var(--teal);
     color: var(--on-accent);
     font-size: 0.8rem;
+  }
+  /* Personaje o monstruo del paso: sin fondo, a la derecha del texto (debajo en celular) */
+  .step__figura {
+    display: grid;
+    justify-items: center;
+    gap: 0.2rem;
+    width: 7.5rem;
+    margin: 0 auto 0.75rem;
+  }
+  .step__figura img {
+    width: 100%;
+    height: auto;
+    max-height: 9rem;
+    object-fit: contain;
+    filter: drop-shadow(0 3px 0 rgb(43 26 14 / 0.2));
+  }
+  @media (min-width: 600px) {
+    .step__figura {
+      float: right;
+      margin: -0.5rem 0 0.5rem 1rem;
+    }
+    .step__body::after {
+      content: '';
+      display: block;
+      clear: both;
+    }
+  }
+  /* Turnos de una pelea dentro de un paso: línea de tiempo con fichas numeradas */
+  .turnos {
+    display: grid;
+    gap: 0.9rem;
+    margin: 0.9rem 0 0.25rem;
+    padding: 0;
+    list-style: none;
+    counter-reset: none;
+  }
+  .turno {
+    position: relative;
+    display: grid;
+    grid-template-columns: 2.4rem minmax(0, 1fr);
+    gap: 0.75rem;
+  }
+  .turno:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: calc(1.2rem - 1.5px);
+    top: 2.5rem;
+    bottom: -0.9rem;
+    border-left: 3px dotted var(--rule);
+  }
+  .turno__num {
+    display: grid;
+    place-items: center;
+    width: 2.4rem;
+    height: 2.4rem;
+    border: 2.5px solid var(--ink);
+    border-radius: 50%;
+    background: var(--yellow);
+    color: var(--on-accent);
+    font: 400 1.15rem/1 var(--font-display);
+    box-shadow: 2px 2px 0 var(--shadow);
+  }
+  .turno__titulo {
+    margin: 0.35rem 0 0.2rem;
+    font: 400 1.08rem/1.25 var(--font-display);
+  }
+  .turno__texto {
+    margin: 0;
+  }
+  .turno__nota {
+    margin: 0.4rem 0 0;
+    font-size: 0.92rem;
   }
   .actions {
     margin-top: 1.5rem;

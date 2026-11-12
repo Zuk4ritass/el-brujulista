@@ -51,6 +51,17 @@ const step = z.object({
   capturas: z.array(z.string().regex(/^[\w.-]+\.(png|jpe?g|webp)$/i, 'Solo el nombre del archivo, ej: mi-captura.png')).default([]),
   /** Caminos alternativos para cumplir el paso (mínimo 2): el jugador elige uno. */
   opciones: z.array(opcion).min(2).optional(),
+  /** Sub-pasos numerados como turnos de una pelea (Turno 1, Turno 2…), dentro de un solo paso. */
+  turnos: z
+    .array(z.object({ titulo: z.string().min(1), texto: z.string().min(1), nota: z.string().optional() }))
+    .optional(),
+  /** Personaje o monstruo del juego que acompaña el paso, sin fondo y sin texto (`nombre` es el texto alternativo de la imagen). */
+  figura: z
+    .object({
+      sprite: z.string().regex(/^npcs\/[\w-]+$/, 'sprite es "npcs/archivo", sin extensión (archivo en public/sprites/npcs/)'),
+      nombre: z.string().min(1),
+    })
+    .optional(),
 });
 
 const knownBug = z.object({

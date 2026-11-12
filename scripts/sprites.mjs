@@ -18,7 +18,7 @@ const wanted = new Set();
 for (const f of await readdir(guidesDir, { recursive: true })) {
   if (!/\.mdx?$/.test(f)) continue;
   const text = await readFile(join(guidesDir, f), 'utf8');
-  for (const m of text.matchAll(/^\s*-?\s*sprite:\s*["']?([\w-]+\/[\w-]+)["']?/gm)) wanted.add(m[1]);
+  for (const m of text.matchAll(/^\s*-?\s*sprite:\s*["']?([\w-]+\/[\w-]+)["']?/gm)) if (!m[1].startsWith('npcs/')) wanted.add(m[1]);
   // Póster con sprite de objeto: poster: "objetos/carpeta/archivo"
   for (const m of text.matchAll(/^\s*poster:\s*["']?objetos\/([\w-]+\/[\w-]+)["']?/gm)) wanted.add(m[1]);
 }
@@ -53,7 +53,8 @@ const npcs = new Set();
 for (const f of await readdir(guidesDir, { recursive: true })) {
   if (!/\.mdx?$/.test(f)) continue;
   const text = await readFile(join(guidesDir, f), 'utf8');
-  for (const m of text.matchAll(/^\s*poster:\s*["']?npcs\/([\w-]+)["']?/gm)) npcs.add(m[1]);
+  // `poster:` de la guía y `sprite:` de la figura de un paso
+  for (const m of text.matchAll(/^\s*(?:poster|sprite):\s*["']?npcs\/([\w-]+)["']?/gm)) npcs.add(m[1]);
 }
 let npcCopied = 0;
 const npcMissing = [];
