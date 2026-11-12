@@ -5,12 +5,13 @@
  * - Clic o toque en una sugerencia lleva directo a la guía.
  */
 import { buildIndex, normalize, search, type SearchDoc } from './search';
+import { posterSvg, type ArtCategory } from './poster-art';
 
 const MAX = 6;
-const STATUS_TEXT: Record<string, string> = {
-  verificado: '✓ Verificada',
-  'sin-verificar': 'Sin verificar',
-  desactualizado: 'Desactualizada',
+const STATUS: Record<string, { icon: string; text: string }> = {
+  verificado: { icon: '✓', text: 'Verificada' },
+  'sin-verificar': { icon: '?', text: 'Sin verificar' },
+  desactualizado: { icon: '!', text: 'Desactualizada' },
 };
 
 export function initSuggest(form: HTMLFormElement): void {
@@ -92,9 +93,19 @@ export function initSuggest(form: HTMLFormElement): void {
       li.setAttribute('aria-selected', 'false');
       li.dataset.slug = slug;
 
+      // Miniatura: el mismo arte del póster + el sello de estado en la esquina
       const thumb = document.createElement('span');
-      thumb.className = `opt__thumb opt__thumb--${d.meta?.key ?? 'ruta'}`;
+      thumb.className = 'opt__thumb';
       thumb.setAttribute('aria-hidden', 'true');
+      // posterSvg genera SVG propio (sin datos del usuario), es seguro como innerHTML
+      thumb.innerHTML = posterSvg((d.meta?.key ?? 'ruta') as ArtCategory, `s${i}-${Date.now() % 1e6}`, true);
+      const st = STATUS[d.meta?.status ?? ''];
+      if (st) {
+        const badge = document.createElement('span');
+        badge.className = `opt__status opt__status--${d.meta!.status}`;
+        badge.textContent = st.icon;
+        thumb.append(badge);
+      }
 
       const text = document.createElement('span');
       text.className = 'opt__text';
@@ -103,9 +114,18 @@ export function initSuggest(form: HTMLFormElement): void {
       t.append(highlight(d.title, q));
       const meta = document.createElement('span');
       meta.className = 'opt__meta';
-      meta.textContent = [d.meta?.category, d.meta?.level, STATUS_TEXT[d.meta?.status ?? ''], d.meta?.example && 'Ejemplo']
-        .filter(Boolean)
-        .join(' · ');
+      const chips = [d.meta?.category, d.meta?.level, d.meta?.example && 'Ejemplo'].filter(Boolean) as string[];
+      for (const c of chips) {
+        const span = document.createElement('span');
+        span.textContent = c;
+        meta.append(span);
+      }
+      if (st) {
+        const s2 = document.createElement('span');
+        s2.className = `opt__st opt__st--${d.meta!.status}`;
+        s2.textContent = `${st.icon} ${st.text}`;
+        meta.append(s2);
+      }
       text.append(t, meta);
       li.append(thumb, text);
 
