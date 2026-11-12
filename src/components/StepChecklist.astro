@@ -3,6 +3,7 @@
 // El HTML funciona sin JS (se ven los pasos); el script añade guardado, barra, "continuar" y reinicio.
 import GameText from './GameText.astro';
 import { stepId } from '../lib/slugify';
+import { SITE } from '../config';
 
 interface Step {
   id?: string;
@@ -20,9 +21,13 @@ interface Props {
 const { slug, steps } = Astro.props;
 const total = steps.length;
 // "-12, 25" se muestra como placa de juego "[-12, 25]"; cualquier otro texto (ej. POR COMPLETAR) queda igual.
-const fmtCoords = (c: string) => {
+const parseCoords = (c: string) => {
   const m = c.match(/^\s*\[?\s*(-?\d+)\s*,\s*(-?\d+)\s*\]?\s*$/);
-  return m ? `[${m[1]}, ${m[2]}]` : c;
+  return m ? { x: Number(m[1]), y: Number(m[2]) } : null;
+};
+const fmtCoords = (c: string) => {
+  const p = parseCoords(c);
+  return p ? `[${p.x}, ${p.y}]` : c;
 };
 ---
 
@@ -73,6 +78,21 @@ const fmtCoords = (c: string) => {
                     <div class="step__coords">
                       <dt class="visually-hidden">Coordenadas</dt>
                       <dd><GameText text={fmtCoords(step.coords)} /></dd>
+                    </div>
+                  )}
+                  {step.coords && parseCoords(step.coords) && (
+                    <div class="step__maplink">
+                      <dt class="visually-hidden">Mapa externo</dt>
+                      <dd>
+                        <a
+                          href={SITE.mapUrl(parseCoords(step.coords)!.x, parseCoords(step.coords)!.y)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Ver en el mapa <span aria-hidden="true">↗</span>
+                          <span class="visually-hidden">(se abre en una pestaña nueva)</span>
+                        </a>
+                      </dd>
                     </div>
                   )}
                   {step.reward && (
@@ -263,6 +283,15 @@ const fmtCoords = (c: string) => {
     background: var(--ink);
     color: var(--yellow);
     font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  }
+  .step__facts > .step__maplink {
+    padding: 0;
+    border: 0;
+    background: none;
+    align-self: center;
+  }
+  .step__maplink a {
+    font-size: 0.9rem;
   }
   /* Nota como burbuja de chat */
   .step__notes {

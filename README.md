@@ -109,7 +109,7 @@ Si no pones `cover`, el póster se genera solo, con colores y un dibujo según l
 La guía debe ir directo a la acción:
 - **Un paso es una acción:** "Habla con X", "Ve a [x,y]".
 - **`description`:** una o dos frases.
-- **`map`, `coords` y `reward`:** se muestran como chips pequeños.
+- **`map`, `coords` y `reward`:** se muestran como chips. Si `coords` es un par de números (`"-12, 25"` o `"[-12,25]"`), sale como placa `[-12, 25]` con un botón "Ver en el mapa" que abre el mapa externo (dofus-retro.co) en esa casilla. El enlace se configura en `SITE.mapUrl` (`src/config.ts`); solo enlazamos, no copiamos sus imágenes.
 - **Explicaciones largas:** van en el cuerpo del `.md`, que aparece plegado como "Más contexto".
 
 ### Reglas de contenido
