@@ -11,10 +11,11 @@ export const CATEGORY_LABELS: Record<Category, string> = {
   tip: 'Tip',
 };
 
+/** Texto visible de cada estado (el valor en el frontmatter no cambia: verificado / sin-verificar / desactualizado). */
 export const STATUS_LABELS: Record<Status, string> = {
-  verificado: 'Verificado',
-  'sin-verificar': 'Sin verificar',
-  desactualizado: 'Desactualizado',
+  verificado: 'Probada en Trefus',
+  'sin-verificar': 'Sin probar aún',
+  desactualizado: 'Desactualizada',
 };
 
 /** Rangos del filtro de nivel. Una guía entra si su rango se cruza con el elegido. */

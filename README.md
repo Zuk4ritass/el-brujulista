@@ -149,8 +149,10 @@ verification:
 
 Si algo cambia en el servidor después, cambia el estado a `desactualizado` y conserva la fecha anterior. Cuando la vuelvas a comprobar, regresa a `verificado` con la fecha nueva.
 
-| Estado | Cuándo usarlo |
-| --- | --- |
-| `sin-verificar` | Guía nueva, o escrita sin comprobar en el servidor. |
-| `verificado` | La seguiste completa en Trefus y funciona. |
-| `desactualizado` | Estaba verificada, pero algo cambió en el servidor. |
+| Valor en el archivo | Lo que ve la gente | Cuándo usarlo |
+| --- | --- | --- |
+| `sin-verificar` | ? Sin probar aún | Guía nueva, o escrita sin comprobar en el servidor. |
+| `verificado` | ✓ Probada en Trefus | La seguiste completa en Trefus y funciona. |
+| `desactualizado` | ! Desactualizada | Estaba verificada, pero algo cambió en el servidor. |
+
+Los textos visibles se cambian en `STATUS_LABELS` (`src/lib/guides.ts`); los valores del archivo no cambian.

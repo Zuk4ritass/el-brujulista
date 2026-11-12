@@ -6,12 +6,13 @@
  */
 import { buildIndex, normalize, search, type SearchDoc } from './search';
 import { posterSvg, type ArtCategory } from './poster-art';
+import { STATUS_LABELS } from './guides';
 
 const MAX = 6;
 const STATUS: Record<string, { icon: string; text: string }> = {
-  verificado: { icon: '✓', text: 'Verificada' },
-  'sin-verificar': { icon: '?', text: 'Sin verificar' },
-  desactualizado: { icon: '!', text: 'Desactualizada' },
+  verificado: { icon: '✓', text: STATUS_LABELS.verificado },
+  'sin-verificar': { icon: '?', text: STATUS_LABELS['sin-verificar'] },
+  desactualizado: { icon: '!', text: STATUS_LABELS.desactualizado },
 };
 
 export function initSuggest(form: HTMLFormElement): void {
