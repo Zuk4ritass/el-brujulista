@@ -6,5 +6,5 @@ export const SITE = {
    * Invitación al Discord donde la gente sugiere guías.
    * Mientras esté vacío, el botón aparece como "Discord próximamente".
    */
-  discordUrl: '',
+  discordUrl: 'https://discord.gg/Tf8uanFzNS',
 };

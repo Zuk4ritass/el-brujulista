@@ -9,6 +9,7 @@ import StepChecklist from '../../components/StepChecklist.astro';
 import KnownBugs from '../../components/KnownBugs.astro';
 import GameText from '../../components/GameText.astro';
 import { CATEGORY_LABELS, levelLabel } from '../../lib/guides';
+import { SITE } from '../../config';
 
 export async function getStaticPaths() {
   const guias = await getCollection('guias');
@@ -89,6 +90,24 @@ const description = data.summary.includes('POR COMPLETAR') ? `Guía paso a paso:
             <a href={`https://www.youtube.com/watch?v=${data.video.youtube}`} target="_blank" rel="noopener">«{data.video.titulo}»</a>, de <strong>{data.video.autor}</strong>. Puede no coincidir del todo con Trefus.
           </p>
         </section>
+      )
+    }
+
+    {
+      SITE.discordUrl && (
+        <aside class="ayuda" aria-labelledby="ayuda-titulo">
+          <div>
+            <h2 id="ayuda-titulo" class="ayuda__titulo">¿Falta un dato o algo no te funcionó?</h2>
+            <p>
+              Cuéntalo en el Discord: en <strong>#aportar-datos</strong> si sabes algo que falta (nivel, recompensas,
+              capturas) o en <strong>#errores-en-guias</strong> si un paso no coincide con Trefus.
+            </p>
+          </div>
+          <a class="btn" href={SITE.discordUrl} target="_blank" rel="noopener noreferrer">
+            Ir al Discord <span aria-hidden="true">↗</span>
+            <span class="visually-hidden">(se abre en una pestaña nueva)</span>
+          </a>
+        </aside>
       )
     }
 
@@ -194,6 +213,28 @@ const description = data.summary.includes('POR COMPLETAR') ? `Guía paso a paso:
   }
   .video__credito a {
     color: var(--ink);
+  }
+  .ayuda {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.8rem 1.25rem;
+    margin-top: 2rem;
+    padding: 1rem 1.2rem;
+    border: var(--line);
+    border-radius: 12px;
+    background: var(--soft-yellow);
+    box-shadow: 3px 3px 0 var(--shadow);
+  }
+  .ayuda > div {
+    flex: 1 1 320px;
+  }
+  .ayuda__titulo {
+    margin: 0 0 0.35rem;
+    font-size: 1.3rem;
+  }
+  .ayuda p {
+    margin: 0;
   }
   .more__body :global(p) {
     margin: 0 0 0.5rem;

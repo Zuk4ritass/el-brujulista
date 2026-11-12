@@ -23,7 +23,10 @@ const discord = SITE.discordUrl;
       </svg>
       <div>
         <h2>Deja tu idea en Discord</h2>
-        <p>Es el canal donde recibimos las propuestas y vemos cuáles pide más gente.</p>
+        <p>
+          Abre una publicación en el foro <strong>#sugerir-guias</strong> y elige una etiqueta (mazmorra, misión,
+          llegar a un lugar…). Si alguien ya pidió esa guía, vótala con 👍: las más votadas se hacen primero.
+        </p>
         {
           discord ? (
             <a class="btn" href={discord} target="_blank" rel="noopener noreferrer">
@@ -48,6 +51,16 @@ const discord = SITE.discordUrl;
         Solo pedimos la idea: no hace falta que escribas la guía ni que copies información de otras
         páginas. Así todo lo que publicamos coincide con lo que de verdad pasa en el servidor.
       </p>
+    </section>
+
+    <section class="panel" aria-labelledby="ayuda-titulo">
+      <h2 id="ayuda-titulo">¿Ya juegas y quieres ayudar más?</h2>
+      <p>En el mismo Discord hay un espacio para cada cosa, así nada se pierde:</p>
+      <ul class="tips">
+        <li><strong>#aportar-datos:</strong> un dato que le falta a una guía, como el nivel, las recompensas, coordenadas o capturas.</li>
+        <li><strong>#errores-en-guias:</strong> un paso que no te funcionó o que no coincide con Trefus.</li>
+      </ul>
+      <p class="fine">Si usamos tu dato, te damos el crédito en la guía.</p>
     </section>
 
     <section class="panel" aria-labelledby="despues-titulo">
