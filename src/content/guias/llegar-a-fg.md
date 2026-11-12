@@ -1,6 +1,6 @@
 ---
 # Guía piloto. Datos de juego aportados y verificados por Manuel (capturas y recorrido en Trefus, 2026-11-12).
-title: Llegar a Frigost
+title: "Cómo llegar a Frigost"
 slug: llegar-a-fg
 summary: Del Portal Transportador de Astrub al barco del Capitán Ardier, y en Frigost guarda el zaap para volver rápido.
 tags: [FG, Frigost, zaap, barco]
