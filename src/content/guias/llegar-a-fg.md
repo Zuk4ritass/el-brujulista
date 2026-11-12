@@ -14,7 +14,7 @@ steps:
     title: Paso 1 — POR COMPLETAR
     description: POR COMPLETAR
     map: POR COMPLETAR
-    coords: POR COMPLETAR
+    coords: "4, -19" # dato de Manuel: aquí empieza el camino a FG
     notes: POR COMPLETAR
   - id: paso-2
     title: Paso 2 — POR COMPLETAR
