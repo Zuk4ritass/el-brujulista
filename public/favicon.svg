@@ -1,10 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- Brújula caricatura: ícono propio de El Brujulista -->
-  <rect x="26" y="2" width="12" height="9" rx="4" fill="#f08a3c" stroke="#2b1a0e" stroke-width="3.5"/>
-  <circle cx="32" cy="36" r="25" fill="#f08a3c" stroke="#2b1a0e" stroke-width="4"/>
-  <circle cx="32" cy="36" r="18" fill="#fffaf0" stroke="#2b1a0e" stroke-width="3.5"/>
-  <path d="M32 21v3M32 48v3M17 36h3M44 36h3" stroke="#2b1a0e" stroke-width="3" stroke-linecap="round"/>
-  <path d="M40 26L36 39 28 33z" fill="#e2574c" stroke="#2b1a0e" stroke-width="3" stroke-linejoin="round"/>
-  <path d="M24 46l4-13 8 6z" fill="#3fb3a3" stroke="#2b1a0e" stroke-width="3" stroke-linejoin="round"/>
-  <circle cx="32" cy="36" r="2.5" fill="#2b1a0e"/>
+  <!-- Brújula de aventurero (dibujo propio): aro de madera, cordón de cuero y aguja roja -->
+  <!-- cordón: contorno de tinta + cuero encima -->
+  <path d="M33 12c1-6 9-9 14-6s3 10 10 9" fill="none" stroke="#2b1a0e" stroke-width="6.5" stroke-linecap="round"/>
+  <path d="M33 12c1-6 9-9 14-6s3 10 10 9" fill="none" stroke="#9a5b2a" stroke-width="3" stroke-linecap="round"/>
+  <!-- argolla -->
+  <circle cx="32" cy="13" r="4.5" fill="#d9a35c" stroke="#2b1a0e" stroke-width="3"/>
+  <!-- aro de madera con vetas -->
+  <circle cx="32" cy="38" r="23" fill="#d9a35c" stroke="#2b1a0e" stroke-width="4"/>
+  <path d="M14 30c3-5 6-7 10-8M50 46c-3 4-6 6-10 7M45 22c3 2 5 4 6 7" fill="none" stroke="#a8692f" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- esfera -->
+  <circle cx="32" cy="38" r="15" fill="#fffaf0" stroke="#2b1a0e" stroke-width="3.5"/>
+  <!-- aguja: punta roja y cola crema -->
+  <path d="M39 27l-4 13-6-5z" fill="#e2574c" stroke="#2b1a0e" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M25 49l4-14 6 5z" fill="#ecdcb4" stroke="#2b1a0e" stroke-width="2.5" stroke-linejoin="round"/>
+  <circle cx="32" cy="37.5" r="2.2" fill="#2b1a0e"/>
 </svg>
