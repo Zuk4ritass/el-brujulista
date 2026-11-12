@@ -1,0 +1,140 @@
+---
+// Mini mapa dibujado por nosotros: cuadrícula centrada en una coordenada, con las zonas
+// que Manuel registró en src/data/zonas.ts. No usa imágenes del juego.
+// Las casillas sin zona registrada se ven como papel en blanco (no inventamos geografía).
+import { ZONAS, type Terreno, type Zona } from '../data/zonas';
+
+interface Props {
+  x: number;
+  y: number;
+}
+const { x, y } = Astro.props;
+
+const RX = 4; // casillas a cada lado (horizontal)
+const RY = 3; // casillas arriba y abajo
+const C = 30; // tamaño de casilla en px del SVG
+const L = 30; // margen para los números del eje y
+const T = 20; // margen para los números del eje x
+const cols = RX * 2 + 1;
+const rows = RY * 2 + 1;
+const W = L + cols * C + 6;
+const H = T + rows * C + 6;
+
+const FILL: Record<Terreno, string> = {
+  pasto: '#a9d66a',
+  bosque: '#6fae4b',
+  arena: '#ecd28f',
+  roca: '#b9ad9a',
+  nieve: '#eef4fb',
+  agua: '#8fc0ec',
+  ciudad: '#d9c3a0',
+  pantano: '#8fa86a',
+};
+
+const inside = (z: Zona, cx: number, cy: number) =>
+  cx >= Math.min(z.desde[0], z.hasta[0]) &&
+  cx <= Math.max(z.desde[0], z.hasta[0]) &&
+  cy >= Math.min(z.desde[1], z.hasta[1]) &&
+  cy <= Math.max(z.desde[1], z.hasta[1]);
+// La última zona de la lista que contiene la casilla gana.
+const zoneAt = (cx: number, cy: number) => [...ZONAS].reverse().find((z) => inside(z, cx, cy));
+
+const px = (cx: number) => L + (cx - (x - RX)) * C;
+const py = (cy: number) => T + (cy - (y - RY)) * C;
+
+const cells = [] as { cx: number; cy: number; fill: string }[];
+for (let cy = y - RY; cy <= y + RY; cy++)
+  for (let cx = x - RX; cx <= x + RX; cx++) {
+    const z = zoneAt(cx, cy);
+    cells.push({ cx, cy, fill: z ? FILL[z.terreno] : '#f3e8cc' });
+  }
+
+// Nombres de zona: uno por zona visible, en el centro de su parte visible, si cabe (2+ casillas de ancho).
+const labels = ZONAS.map((z) => {
+  const x1 = Math.max(Math.min(z.desde[0], z.hasta[0]), x - RX);
+  const x2 = Math.min(Math.max(z.desde[0], z.hasta[0]), x + RX);
+  const y1 = Math.max(Math.min(z.desde[1], z.hasta[1]), y - RY);
+  const y2 = Math.min(Math.max(z.desde[1], z.hasta[1]), y + RY);
+  if (x1 > x2 || y1 > y2 || x2 - x1 < 1) return null;
+  return { text: z.nombre, lx: (px(x1) + px(x2) + C) / 2, ly: (py(y1) + py(y2) + C) / 2 };
+}).filter(Boolean) as { text: string; lx: number; ly: number }[];
+
+const here = zoneAt(x, y);
+const xs = Array.from({ length: cols }, (_, i) => x - RX + i);
+const ys = Array.from({ length: rows }, (_, i) => y - RY + i);
+---
+
+<figure class="minimapa">
+  <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Mini mapa centrado en la coordenada ${x}, ${y}`}>
+    <g font-family="ui-monospace, Consolas, monospace" font-size="10" fill="#6b5238" text-anchor="middle">
+      {xs.map((cx) => <text x={px(cx) + C / 2} y={T - 6} font-weight={cx === x ? 900 : 400} fill={cx === x ? '#2b1a0e' : undefined}>{cx}</text>)}
+      {ys.map((cy) => <text x={L - 15} y={py(cy) + C / 2 + 3.5} font-weight={cy === y ? 900 : 400} fill={cy === y ? '#2b1a0e' : undefined}>{cy}</text>)}
+    </g>
+    <g stroke="#2b1a0e" stroke-opacity=".22" stroke-width="1">
+      {cells.map((c) => <rect x={px(c.cx)} y={py(c.cy)} width={C} height={C} fill={c.fill} />)}
+    </g>
+    <rect x={L} y={T} width={cols * C} height={rows * C} fill="none" stroke="#2b1a0e" stroke-width="3" rx="4"></rect>
+    {
+      labels.map((l) => (
+        <text x={l.lx} y={l.ly + 4} text-anchor="middle" font-family="Lilita One, sans-serif" font-size="12" fill="#2b1a0e" stroke="#fffaf0" stroke-width="3" paint-order="stroke">
+          {l.text}
+        </text>
+      ))
+    }
+    <!-- Casilla del paso -->
+    <rect class="minimapa__here" x={px(x) + 2} y={py(y) + 2} width={C - 4} height={C - 4} rx="4" fill="#ffd23f" stroke="#2b1a0e" stroke-width="3"></rect>
+    <path d={`M${px(x) + C / 2} ${py(y) + 7}l6 8-6 8-6-8z`} fill="#e2574c" stroke="#2b1a0e" stroke-width="2" stroke-linejoin="round"></path>
+    <!-- Norte -->
+    <g transform={`translate(${W - 16} ${T + 14})`} font-family="Lilita One, sans-serif" font-size="11" text-anchor="middle">
+      <circle r="10" fill="#fffaf0" stroke="#2b1a0e" stroke-width="2"></circle>
+      <text y="4" fill="#2b1a0e">N</text>
+    </g>
+  </svg>
+  <figcaption>
+    <span class="minimapa__coords">[{x}, {y}]</span>
+    {here ? <span>{here.nombre}</span> : <span class="pending">Zona: POR COMPLETAR</span>}
+  </figcaption>
+</figure>
+
+<style>
+  .minimapa {
+    max-width: 340px;
+    margin: 0.75rem 0 0;
+    padding: 0.5rem 0.5rem 0.55rem;
+    border: var(--line);
+    border-radius: 12px;
+    background: var(--card);
+    box-shadow: 3px 3px 0 var(--ink);
+  }
+  .minimapa svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .minimapa__here {
+    animation: pulse 1.6s ease-in-out infinite;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  @keyframes pulse {
+    50% {
+      scale: 0.88;
+    }
+  }
+  figcaption {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.6rem;
+    margin-top: 0.35rem;
+    font-weight: 800;
+    font-size: 0.9rem;
+  }
+  .minimapa__coords {
+    padding: 0 0.45rem;
+    border-radius: 6px;
+    background: var(--ink);
+    color: var(--yellow);
+    font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  }
+</style>

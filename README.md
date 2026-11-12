@@ -109,7 +109,19 @@ Si no pones `cover`, el póster se genera solo, con colores y un dibujo según l
 La guía debe ir directo a la acción:
 - **Un paso es una acción:** "Habla con X", "Ve a [x,y]".
 - **`description`:** una o dos frases.
-- **`map`, `coords` y `reward`:** se muestran como chips. Si `coords` es un par de números (`"-12, 25"` o `"[-12,25]"`), sale como placa `[-12, 25]` con un botón "Ver en el mapa" que abre el mapa externo (dofus-retro.co) en esa casilla. El enlace se configura en `SITE.mapUrl` (`src/config.ts`); solo enlazamos, no copiamos sus imágenes.
+- **`map`, `coords` y `reward`:** se muestran como chips. Si `coords` es un par de números (`"-12, 25"` o `"[-12,25]"`), sale como placa `[-12, 25]` y debajo un **mini mapa** propio centrado en esa casilla.
+
+### Mini mapa y zonas
+
+El mini mapa es un dibujo nuestro (sin imágenes del juego): una cuadrícula de 9×7 casillas centrada en la coordenada del paso, con la casilla marcada y los números de x/y en los bordes. Las zonas se pintan según `src/data/zonas.ts`, que llenas tú con lo que compruebes jugando:
+
+```ts
+{ nombre: 'Ciudad de Astrub', desde: [4, -19], hasta: [4, -19], terreno: 'ciudad' },
+```
+
+- `desde` y `hasta` son dos esquinas opuestas (incluidas). Una zona irregular se registra en varios rectángulos con el mismo nombre.
+- `terreno`: `pasto`, `bosque`, `arena`, `roca`, `nieve`, `agua`, `ciudad` o `pantano` (solo cambia el color).
+- Casillas sin zona registrada se ven en blanco y el pie del mapa dice "Zona: POR COMPLETAR". No se rellena geografía de memoria.
 - **Explicaciones largas:** van en el cuerpo del `.md`, que aparece plegado como "Más contexto".
 
 ### Reglas de contenido

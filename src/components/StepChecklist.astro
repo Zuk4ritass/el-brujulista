@@ -3,7 +3,7 @@
 // El HTML funciona sin JS (se ven los pasos); el script añade guardado, barra, "continuar" y reinicio.
 import GameText from './GameText.astro';
 import { stepId } from '../lib/slugify';
-import { SITE } from '../config';
+import MiniMapa from './MiniMapa.astro';
 
 interface Step {
   id?: string;
@@ -80,21 +80,6 @@ const fmtCoords = (c: string) => {
                       <dd><GameText text={fmtCoords(step.coords)} /></dd>
                     </div>
                   )}
-                  {step.coords && parseCoords(step.coords) && (
-                    <div class="step__maplink">
-                      <dt class="visually-hidden">Mapa externo</dt>
-                      <dd>
-                        <a
-                          href={SITE.mapUrl(parseCoords(step.coords)!.x, parseCoords(step.coords)!.y)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          Ver en el mapa <span aria-hidden="true">↗</span>
-                          <span class="visually-hidden">(se abre en una pestaña nueva)</span>
-                        </a>
-                      </dd>
-                    </div>
-                  )}
                   {step.reward && (
                     <div>
                       <dt>Recompensa</dt>
@@ -102,6 +87,9 @@ const fmtCoords = (c: string) => {
                     </div>
                   )}
                 </dl>
+              )}
+              {step.coords && parseCoords(step.coords) && (
+                <MiniMapa x={parseCoords(step.coords)!.x} y={parseCoords(step.coords)!.y} />
               )}
               {step.notes && (
                 <p class="step__notes">
@@ -283,15 +271,6 @@ const fmtCoords = (c: string) => {
     background: var(--ink);
     color: var(--yellow);
     font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
-  }
-  .step__facts > .step__maplink {
-    padding: 0;
-    border: 0;
-    background: none;
-    align-self: center;
-  }
-  .step__maplink a {
-    font-size: 0.9rem;
   }
   /* Nota como burbuja de chat */
   .step__notes {

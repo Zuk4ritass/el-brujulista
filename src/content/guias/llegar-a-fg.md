@@ -11,10 +11,11 @@ requirements:
   - POR COMPLETAR
 steps:
   - id: paso-1
-    title: Paso 1 — POR COMPLETAR
-    description: POR COMPLETAR
-    map: POR COMPLETAR
-    coords: "4, -19" # dato de Manuel: aquí empieza el camino a FG
+    # Datos de Manuel (captura del juego): Portal Transportador en Astrub [4, -19]
+    title: Ve al Portal Transportador
+    description: "Ve al Portal Transportador de la Ciudad de Astrub. Qué hacer en el portal: POR COMPLETAR"
+    map: Astrub (Ciudad de Astrub)
+    coords: "4, -19"
     notes: POR COMPLETAR
   - id: paso-2
     title: Paso 2 — POR COMPLETAR
