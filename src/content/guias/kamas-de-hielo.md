@@ -1,6 +1,6 @@
 ---
 # Datos de Zukitas (2026-11-12, capturas del juego). Sprite de la Kama de hielo: objeto 11196 del cliente → 15/825.
-title: Kamas de hielo
+title: "Kamas de hielo: cómo usarlas y obtenerlas"
 slug: kamas-de-hielo
 summary: Qué son, cómo conseguirlas y dónde gastarlas en recursos para los sets de Frigost 2 y Frigost 3.
 tags: [kamas de hielo, Frigost, F2, F3, Alcaldesa Lario, sets, recursos]
