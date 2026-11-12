@@ -207,6 +207,26 @@ const nav = [
   nav {
     margin-left: auto;
   }
+  /* Celular: que logo, menú y botón de tema quepan en una línea */
+  @media (max-width: 480px) {
+    .brand {
+      font-size: 1.2rem;
+    }
+    .brand img {
+      width: 34px;
+      height: 34px;
+    }
+    .brand__tag {
+      display: none;
+    }
+    nav ul {
+      gap: 0.1rem;
+    }
+    nav a {
+      padding: 0.4rem 0.55rem;
+      font-size: 1rem;
+    }
+  }
   .theme-toggle {
     display: grid;
     place-items: center;

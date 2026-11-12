@@ -5,7 +5,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import GuidePoster from '../components/GuidePoster.astro';
 import PosterRow from '../components/PosterRow.astro';
 import SearchBox from '../components/SearchBox.astro';
-import IsoDiorama from '../components/IsoDiorama.astro';
+import HeroEscena from '../components/HeroEscena.astro';
 import { CATEGORY_LABELS, sortGuides, type Category } from '../lib/guides';
 
 const guias = sortGuides(await getCollection('guias'));
@@ -14,20 +14,16 @@ const categories = [...new Set(guias.map((g) => g.data.category))] as Category[]
 ---
 
 <BaseLayout title="Inicio">
-  <section class="hero container" aria-labelledby="hero-title">
-    <div class="hero__text">
-      <h1 id="hero-title" class="hero__title">
-        Guías de <span class="marker">Trefus</span>, paso a paso
-      </h1>
-      <p class="hero__lead">Cortas, claras y probadas jugando. ¿Qué necesitas?</p>
-      <div class="hero__search">
-        <SearchBox id="buscar-inicio" size="big" suggest placeholder="Ej: goloson, Frigost, dungeon…" />
-      </div>
+  <!-- Portada: aventureros frente a bestias de Frigost, con sprites del juego, sobre un paisaje a todo lo ancho -->
+  <HeroEscena>
+    <h1 id="hero-title" class="hero__title">
+      Guías de <span class="marker">Trefus</span>, paso a paso
+    </h1>
+    <p class="hero__lead">Cortas, claras y probadas jugando. ¿Qué necesitas?</p>
+    <div class="hero__search">
+      <SearchBox id="buscar-inicio" size="big" suggest placeholder="Ej: goloson, Frigost, dungeon…" />
     </div>
-
-    <!-- Islita isométrica con aventurero propio (guiño a los mapas del 1.29) -->
-    <div class="hero__doodle"><IsoDiorama /></div>
-  </section>
+  </HeroEscena>
 
   <div class="container">
     <PosterRow title="Continúa donde quedaste" id="fila-continuar" hidden>
@@ -59,20 +55,7 @@ const categories = [...new Set(guias.map((g) => g.data.category))] as Category[]
 </BaseLayout>
 
 <style>
-  /* ---------- Héroe ---------- */
-  .hero {
-    position: relative;
-    z-index: 5; /* el desplegable de sugerencias debe quedar encima de las tarjetas */
-    display: grid;
-    align-items: center;
-    gap: 1rem 2rem;
-    padding-block: clamp(2rem, 7vw, 4rem) clamp(1.5rem, 5vw, 2.5rem);
-  }
-  @media (min-width: 820px) {
-    .hero {
-      grid-template-columns: 1fr 340px;
-    }
-  }
+  /* ---------- Héroe (el paisaje y los personajes están en HeroEscena) ---------- */
   .hero__title {
     margin: 0;
     font-size: clamp(2.4rem, 8vw, 4rem);
@@ -88,22 +71,6 @@ const categories = [...new Set(guias.map((g) => g.data.category))] as Category[]
     z-index: 10;
     max-width: 620px;
   }
-  .hero__doodle {
-    display: none;
-    width: 100%;
-    animation: bob 5s ease-in-out infinite;
-  }
-  @media (min-width: 820px) {
-    .hero__doodle {
-      display: block;
-    }
-  }
-  @keyframes bob {
-    50% {
-      translate: 0 -6px;
-    }
-  }
-
   /* ---------- Todas las guías ---------- */
   .all {
     margin-top: 1.5rem;

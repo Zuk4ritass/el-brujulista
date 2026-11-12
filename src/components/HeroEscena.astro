@@ -1,0 +1,400 @@
+---
+/**
+ * Portada: el texto (slot) sobre un paisaje nevado que ocupa todo el ancho, con un grupo de aventureros
+ * frente a bestias de Frigost. Sin recuadro: el paisaje es el fondo de la sección.
+ * Sprites del juego en public/sprites/hero/ (los genera scripts/sprites.mjs, lista HERO).
+ * Personajes y paisaje usan las mismas coordenadas (escenario de 560×400), así los pies siempre pisan el suelo.
+ */
+import { u } from '../lib/url';
+
+const W = 560;
+const H = 400;
+
+interface Actor {
+  id: string;
+  w: number; // tamaño original del sprite (px)
+  h: number;
+  scale: number; // px en pantalla por px del sprite, sobre un escenario de 560×400
+  left: number; // % desde la izquierda del escenario
+  bottom: number; // % desde abajo
+  z: number;
+  flip?: boolean; // los sprites miran a la derecha; los monstruos se voltean para mirar al grupo
+  delay: number; // desfase de la animación (s)
+  kind: 'hero' | 'boss' | 'minion';
+}
+
+const actores: Actor[] = [
+  // Grupo (mirando a la derecha)
+  { id: '100', w: 78, h: 213, scale: 0.78, left: 7, bottom: 15, z: 2, delay: 0.4, kind: 'hero' }, // Sadida
+  { id: '90', w: 62, h: 166, scale: 0.8, left: 22.5, bottom: 16, z: 2, delay: 1.1, kind: 'hero' }, // Cra
+  { id: '71', w: 94, h: 154, scale: 0.8, left: 0.5, bottom: 4, z: 5, delay: 0.8, kind: 'hero' }, // Eniripsa
+  { id: '80', w: 73, h: 210, scale: 0.82, left: 16, bottom: 3, z: 6, delay: 0, kind: 'hero' }, // Iop
+  // Bestias de Frigost (volteadas, mirando al grupo)
+  { id: '3229', w: 302, h: 387, scale: 0.9, left: 51, bottom: 9, z: 3, flip: true, delay: 0, kind: 'boss' },
+  { id: '3222', w: 218, h: 226, scale: 0.48, left: 38, bottom: 5, z: 4, flip: true, delay: 0.6, kind: 'minion' },
+  { id: '3221', w: 275, h: 281, scale: 0.55, left: 75, bottom: -1, z: 7, flip: true, delay: 1.3, kind: 'minion' },
+];
+
+const pct = (v: number, total: number) => `${((v / total) * 100).toFixed(2)}%`;
+
+// ---------- Paisaje repetido a lo ancho ----------
+// Un tramo mide 560 unidades (el ancho del escenario); se repite a los lados para llenar pantallas anchas.
+const TRAMOS = Array.from({ length: 11 }, (_, i) => (i - 5) * W);
+const fin = TRAMOS[TRAMOS.length - 1] + W;
+const mover = (d: string, dx: number) =>
+  d.replace(/([ML])(-?[\d.]+) (-?[\d.]+)/g, (_, c, x, y) => `${c}${Number(x) + dx} ${y}`);
+
+const picos: [number, number][] = [
+  [0, 270], [60, 170], [110, 215], [175, 120], [250, 225], [310, 160], [370, 230], [440, 140], [520, 220],
+];
+// A la izquierda del escenario (detrás del texto) no hay montañas ni pinos, para que se lea bien.
+const derecha = TRAMOS.filter((x0) => x0 >= 0);
+const montes =
+  `M-140 400 ` +
+  derecha.map((x0) => picos.map(([x, y]) => `L${x0 + x} ${y}`).join(' ')).join(' ') +
+  ` L${fin} 270 L${fin} 400Z`;
+const cumbres = [
+  'M60 170 L39 200 L50 194 L60 203 L72 193 L93 200Z',
+  'M175 120 L151 155 L163 148 L172 158 L183 147 L199 155Z',
+  'M310 160 L287 185 L298 180 L308 188 L319 179 L331 185Z',
+  'M440 140 L413 175 L425 168 L436 178 L450 166 L475 175Z',
+];
+const colinas =
+  `M${TRAMOS[0]} 300 ` +
+  TRAMOS.map((x0) => `Q${x0 + 80} 255 ${x0 + 170} 285 T${x0 + 360} 280 T${x0 + 560} 300`).join(' ') +
+  ` L${fin} 400 L${TRAMOS[0]} 400Z`;
+const arboles = ['M30 292 L46 246 L62 292Z', 'M58 290 L78 232 L98 290Z', 'M478 285 L497 228 L516 285Z', 'M512 282 L528 240 L544 282Z'];
+const copetes = ['M46 246 L40 262 L46 258 L52 262Z', 'M78 232 L71 251 L78 246 L85 251Z', 'M497 228 L490 247 L497 242 L504 247Z', 'M528 240 L522 256 L528 252 L534 256Z'];
+const repetir = (ds: string[]) => derecha.flatMap((x0) => ds.map((d) => mover(d, x0))).join(' ');
+const bordeSuelo =
+  `M${TRAMOS[0]} 335 ` + TRAMOS.map((x0) => `Q${x0 + 140} 308 ${x0 + 290} 325 T${x0 + 560} 335`).join(' ');
+// El relleno baja un poco más que el escenario para tapar los bordes de abajo; solo la orilla de arriba lleva tinta.
+const suelo = `${bordeSuelo} L${fin} 402 L${TRAMOS[0]} 402Z`;
+
+// Copos de nieve con posiciones fijas (sin aleatorio: el HTML sale igual en cada build).
+const copos = Array.from({ length: 34 }, (_, i) => ({
+  left: (i * 37.3) % 100,
+  size: 3 + ((i * 7) % 5),
+  dur: 8 + ((i * 13) % 8),
+  delay: -((i * 1.7) % 12),
+  drift: ((i % 3) - 1) * 24,
+}));
+---
+
+<section class="hero-escena" aria-labelledby="hero-title">
+  <div class="container hero-escena__inner">
+    <div class="hero-escena__texto"><slot /></div>
+
+    <div class="stage" aria-hidden="true">
+      <svg class="paisaje" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMax meet">
+        <defs>
+          <radialGradient id="escena-halo">
+            <stop offset="0.35" stop-color="var(--hero-sun)" stop-opacity="0.85"></stop>
+            <stop offset="1" stop-color="var(--hero-sun)" stop-opacity="0"></stop>
+          </radialGradient>
+        </defs>
+        <!-- Aura detrás de la bestia -->
+        <circle class="halo" cx="420" cy="150" r="175" fill="url(#escena-halo)"></circle>
+        <g stroke="var(--ink)" stroke-width="3" stroke-linejoin="round">
+          <path d={montes} fill="var(--hero-mtn)"></path>
+          <path d={repetir(cumbres)} fill="var(--hero-snow)" stroke-width="2.5"></path>
+          <path d={colinas} fill="var(--hero-hill)"></path>
+          <path d={repetir(arboles)} fill="var(--hero-pine)" stroke-width="2.5"></path>
+          <path d={repetir(copetes)} fill="var(--hero-snow)" stroke-width="2"></path>
+          <path d={suelo} fill="var(--hero-snow)" stroke="none"></path>
+          <path d={bordeSuelo} fill="none"></path>
+        </g>
+        <g fill="var(--hero-snow-shade)">
+          <ellipse cx="120" cy="372" rx="95" ry="9"></ellipse>
+          <ellipse cx="400" cy="368" rx="120" ry="10"></ellipse>
+        </g>
+      </svg>
+
+      {
+        actores.map((a) => (
+          <div
+            class:list={['actor', `actor--${a.kind}`]}
+            style={`left:${a.left}%;bottom:${a.bottom}%;width:${pct(a.w * a.scale, W)};z-index:${a.z};--delay:${a.delay}s`}
+          >
+            <img
+              class:list={{ flip: a.flip }}
+              src={u(`/sprites/hero/${a.id}.webp`)}
+              width={a.w}
+              height={a.h}
+              alt=""
+              loading="eager"
+              decoding="async"
+            />
+          </div>
+        ))
+      }
+
+      <div class="vs">
+        <svg viewBox="0 0 100 100">
+          <path
+            d="M50 2 L60 30 L90 14 L74 42 L98 52 L70 60 L84 90 L56 72 L48 98 L40 72 L12 88 L28 60 L2 50 L28 40 L14 12 L42 28Z"
+            fill="var(--yellow)"
+            stroke="var(--ink)"
+            stroke-width="3.5"
+            stroke-linejoin="round"></path>
+        </svg>
+        <span>¡VS!</span>
+      </div>
+      <p class="globo">¡Con guía, sin miedo!</p>
+    </div>
+  </div>
+
+  <!-- El suelo nevado se funde con el papel de la página -->
+  <div class="fundido" aria-hidden="true"></div>
+
+  <div class="nieve" aria-hidden="true">
+    {
+      copos.map((c) => (
+        <span style={`left:${c.left}%;--s:${c.size}px;--dur:${c.dur}s;--delay:${c.delay}s;--drift:${c.drift}px`} />
+      ))
+    }
+  </div>
+</section>
+
+<style>
+  .hero-escena {
+    /* Paleta del paisaje (modo claro): invierno de día */
+    --hero-sky: #b9dcf4;
+    --hero-sun: #ffd23f;
+    --hero-mtn: #93acd1;
+    --hero-hill: #c9dbef;
+    --hero-pine: #4e7a6a;
+    --hero-snow: #ffffff;
+    --hero-snow-shade: rgb(91 143 214 / 0.18);
+    --hero-flake: #ffffff;
+
+    position: relative;
+    z-index: 5; /* el desplegable de sugerencias debe quedar encima de las tarjetas de abajo */
+    isolation: isolate;
+    overflow-x: clip;
+    /* Cielo: nace del color del papel arriba y se vuelve azul hacia el horizonte */
+    background: linear-gradient(in oklab to bottom, var(--paper) 0%, var(--hero-sky) 78%);
+  }
+  :global([data-theme='dark']) .hero-escena {
+    /* Modo oscuro: noche polar */
+    --hero-sky: #2e3a63;
+    --hero-sun: #f4ecc8;
+    --hero-mtn: #3d4a74;
+    --hero-hill: #56648f;
+    --hero-pine: #2c4a44;
+    --hero-snow: #dfe8f5;
+    --hero-snow-shade: rgb(20 26 51 / 0.25);
+    --hero-flake: #f4f8ff;
+  }
+
+  .hero-escena__inner {
+    display: grid;
+    gap: 1rem 2rem;
+    padding-top: clamp(2rem, 7vw, 4rem);
+  }
+  .hero-escena__texto {
+    position: relative;
+    z-index: 10;
+  }
+  @media (min-width: 820px) {
+    .hero-escena__inner {
+      grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+      align-items: end;
+    }
+    .hero-escena__texto {
+      align-self: center;
+      padding-bottom: 4rem;
+    }
+  }
+
+  /* ---------- Escenario ---------- */
+  .stage {
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+    margin-inline: auto;
+    aspect-ratio: 560 / 400;
+  }
+  @media (min-width: 820px) {
+    .stage {
+      max-width: none;
+    }
+  }
+  .paisaje {
+    position: absolute;
+    z-index: -1; /* detrás del texto y de los personajes */
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible; /* el paisaje sigue a los lados, hasta los bordes de la pantalla */
+    clip-path: inset(-100vh -300vw 0 -300vw); /* ...pero no por debajo del escenario */
+  }
+  .halo {
+    transform-origin: 420px 150px;
+    animation: halo 6s ease-in-out infinite;
+  }
+
+  /* ---------- Personajes ---------- */
+  .actor {
+    position: absolute;
+    transform-origin: 50% 100%;
+    animation: respira 2.6s ease-in-out var(--delay) infinite;
+  }
+  .actor img {
+    display: block;
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 3px 0 rgb(43 26 14 / 0.25));
+  }
+  .actor img.flip {
+    transform: scaleX(-1);
+  }
+  .actor--boss {
+    animation: ruge 3.4s ease-in-out infinite;
+  }
+  .actor--boss img {
+    filter: drop-shadow(0 4px 0 rgb(43 26 14 / 0.3)) drop-shadow(0 0 18px rgb(169 212 242 / 0.6));
+  }
+  .actor--minion {
+    animation-duration: 2.1s;
+  }
+
+  /* ---------- ¡VS! ---------- */
+  .stage {
+    container-type: inline-size;
+  }
+  .vs {
+    position: absolute;
+    z-index: 8;
+    left: 33%;
+    top: 14%;
+    display: grid;
+    place-items: center;
+    width: 19%;
+    aspect-ratio: 1;
+    animation: vs 1.8s cubic-bezier(0.3, 1.6, 0.5, 1) infinite;
+  }
+  .vs svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(3px 3px 0 var(--ink));
+  }
+  .vs span {
+    position: relative;
+    color: var(--red);
+    font: 400 5.4cqw/1 var(--font-display);
+    -webkit-text-stroke: 0.45cqw var(--ink);
+    paint-order: stroke fill;
+    rotate: -8deg;
+  }
+
+  /* ---------- Globo ---------- */
+  .globo {
+    position: absolute;
+    z-index: 9;
+    left: 3%;
+    top: 12%;
+    max-width: 30%;
+    margin: 0;
+    padding: 0.55em 0.8em;
+    border: 3px solid var(--ink);
+    border-radius: 16px;
+    background: var(--bubble);
+    color: var(--ink);
+    font: 400 max(0.8rem, 3.3cqw) / 1.1 var(--font-display);
+    box-shadow: 3px 3px 0 var(--ink);
+    rotate: -3deg;
+  }
+  .globo::after {
+    content: '';
+    position: absolute;
+    left: 58%;
+    bottom: -14px;
+    width: 18px;
+    height: 18px;
+    border-right: 3px solid var(--ink);
+    border-bottom: 3px solid var(--ink);
+    background: var(--bubble);
+    transform: skewX(25deg) rotate(45deg);
+  }
+
+  /* ---------- Fundido con la página y nieve ---------- */
+  .fundido {
+    position: absolute;
+    z-index: 9;
+    inset: auto 0 0;
+    height: 2.5rem;
+    background: linear-gradient(to bottom, transparent, var(--paper));
+    pointer-events: none;
+  }
+  .nieve {
+    position: absolute;
+    z-index: 11;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .nieve span {
+    position: absolute;
+    top: -10px;
+    width: var(--s);
+    height: var(--s);
+    border-radius: 50%;
+    background: var(--hero-flake);
+    box-shadow: 0 0 0 1px rgb(43 26 14 / 0.2);
+    animation: cae var(--dur) linear var(--delay) infinite;
+  }
+
+  @keyframes respira {
+    50% {
+      translate: 0 -2.5%;
+    }
+  }
+  @keyframes ruge {
+    0%,
+    100% {
+      scale: 1 1;
+    }
+    45% {
+      scale: 1.025 1.04;
+    }
+    55% {
+      scale: 1.03 1.035;
+    }
+  }
+  @keyframes vs {
+    0%,
+    100% {
+      scale: 1;
+      rotate: -6deg;
+    }
+    50% {
+      scale: 1.1;
+      rotate: 4deg;
+    }
+  }
+  @keyframes halo {
+    50% {
+      scale: 1.08;
+      opacity: 0.8;
+    }
+  }
+  @keyframes cae {
+    to {
+      transform: translate(var(--drift), 900px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .actor,
+    .vs,
+    .halo {
+      animation: none;
+    }
+    .nieve {
+      display: none;
+    }
+  }
+</style>

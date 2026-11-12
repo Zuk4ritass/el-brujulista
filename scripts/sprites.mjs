@@ -71,3 +71,19 @@ for (const id of npcs) {
 }
 console.log(`[sprites] ${npcs.size} personajes en pósters, ${npcCopied} copiados ahora.`);
 if (npcMissing.length) console.warn(`[sprites] Faltan personajes (se verá el dibujo de la categoría): ${npcMissing.join(', ')}`);
+
+// ---------- Escena del inicio (hero) ----------
+// Personajes fijos de la portada (src/components/HeroEscena.astro), a su tamaño original y recortados.
+const HERO = ['80', '90', '71', '100', '3229', '3222', '3221'];
+const heroOut = join(root, 'public', 'sprites', 'hero');
+let heroCopied = 0;
+for (const id of HERO) {
+  const dst = join(heroOut, `${id}.webp`);
+  const src = join(npcSrc, `${id}.png`);
+  if (!existsSync(src)) continue;
+  if (existsSync(dst) && (await stat(dst)).mtimeMs >= (await stat(src)).mtimeMs) continue;
+  await mkdir(heroOut, { recursive: true });
+  await sharp(src).trim().webp({ quality: 90 }).toFile(dst);
+  heroCopied++;
+}
+if (heroCopied) console.log(`[sprites] Escena del inicio: ${heroCopied} personajes copiados.`);
