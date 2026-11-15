@@ -43,20 +43,26 @@ steps:
           - nombre: Kama de hielo
             cantidad: 10
             sprite: "15/825"
-  - id: ir-con-la-alcaldesa
-    title: Ve con la Alcaldesa Lario
-    description: "Está en el burgo de la Isla de Frigost, en el mismo mapa del zaap. Háblale y abre su tienda."
-    map: Isla de Frigost (El burgo)
-    coords: "-48, -83"
-    capturas: [kamas-de-hielo-alcaldesa.webp] # en public/capturas/
+  # Zukitas (2026-11-15): los pasos «ir a la tienda» y «comprar» eran lo mismo; quedan en uno.
+  # En Kontatrás [-47, -97] también se abre la tienda «Alcaldesa Lario». Zukitas: burgo = recursos F2, Kontatrás = recursos F3.
   - id: comprar-recursos
     title: Cambia tus kamas de hielo por recursos
-    description: "En su tienda cada recurso tiene su precio en kamas de hielo (por ejemplo, Polvos glaciales cuesta 2 por unidad). Elige el que necesites y dale a «Comprar»."
+    description: "Hay dos tiendas: una vende recursos para los objetos de Frigost 2 (F2) y la otra para los de Frigost 3 (F3). En la tienda, cada recurso tiene su precio en kamas de hielo: elige el que necesites y dale a «Comprar»."
     objetos:
       - nombre: Kama de hielo
         sprite: "15/825"
-    notes: "Compra solo lo que te pida el set que vas a fabricar: estos recursos son para los sets de nivel alto de Frigost 2 (F2) y Frigost 3 (F3)."
-    capturas: [kamas-de-hielo-tienda.webp]
+    opciones:
+      - title: "Para objetos de F2: la Alcaldesa Lario, en el burgo"
+        description: "Está en el burgo de la Isla de Frigost, en el mismo mapa del zaap. Háblale y abre su tienda: vende los recursos para los objetos de F2. Por ejemplo, Polvos glaciales cuesta 2 por unidad."
+        map: Isla de Frigost (El burgo)
+        coords: "-48, -83"
+        capturas: [kamas-de-hielo-alcaldesa.webp, kamas-de-hielo-tienda.webp] # en public/capturas/
+      - title: "Para objetos de F3: la tienda de la entrada del castillo de Kontatrás"
+        description: "Vende los recursos para los objetos de F3, como Tuerca nueva, Raíz cristalizada, Ojo de cristal o Cremallera, a 120 cada uno. La tienda se abre con el nombre «Alcaldesa Lario»."
+        map: Isla de Frigost (Entrada del castillo de Kontatrás)
+        coords: "-47, -97"
+        capturas: [kamas-de-hielo-kontatras-tienda.webp]
+    notes: "Compra solo lo que te pida el set que vas a fabricar, en la tienda de su zona: F2 en el burgo, F3 en Kontatrás."
 verification:
   status: verificado
   lastVerified: 2026-11-12
