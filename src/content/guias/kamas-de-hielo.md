@@ -17,10 +17,21 @@ steps:
     opciones:
       # Dato de Zukitas: las misiones las dan distintos NPC de la isla; Albert Pess en [-50, -84], Valery Miza en [-46, -82]
       - title: Haz misiones de Frigost
-        description: "Las misiones te las dan distintos NPC repartidos por la isla: habla con ellos para aceptarlas. Por ejemplo, en el burgo están Albert Pess [-50, -84] y Valery Miza [-46, -82]."
-        map: Isla de Frigost (El burgo)
-        coords: "-50, -84"
-        capturas: [kamas-de-hielo-albert-pess.webp, kamas-de-hielo-valery-miza.webp]
+        # Capturas de Zukitas (2026-11-15): entrada del castillo de Kontatrás [-47, -97], varios NPC con «!» verde
+        description: "Las misiones te las dan distintos NPC repartidos por la isla: habla con ellos para aceptarlas. Los que tienen misión llevan un «!» verde encima. En el burgo están Albert Pess [-50, -84] y Valery Miza [-46, -82]. En la entrada del castillo de Kontatrás [-47, -97] hay varios más, como Valero Yizo y Arktos Vigía del Hielo."
+        lugares:
+          - map: Isla de Frigost (El burgo)
+            coords: "-50, -84"
+          - map: Isla de Frigost (Entrada del castillo de Kontatrás)
+            coords: "-47, -97"
+        capturas:
+          [
+            kamas-de-hielo-albert-pess.webp,
+            kamas-de-hielo-valery-miza.webp,
+            kamas-de-hielo-kontatras-valero-yizo.webp,
+            kamas-de-hielo-kontatras-arktos.webp,
+            kamas-de-hielo-kontatras-castillo.webp,
+          ]
         recompensas:
           - nombre: Kama de hielo
             sprite: "15/825"

@@ -33,6 +33,7 @@ interface Opcion {
   description: string;
   map?: string;
   coords?: string;
+  lugares?: { map: string; coords: string }[];
   notes?: string;
   capturas?: string[];
   objetos?: Item[];
@@ -144,6 +145,10 @@ const fmtCoords = (c: string) => {
                 <div class="opciones" role="list" aria-label="Elige uno de estos caminos">
                   {step.opciones.map((op, k) => {
                     const opPos = op.coords ? parseCoords(op.coords) : null;
+                    const opLugares = (op.lugares ?? []).flatMap((l) => {
+                      const p = parseCoords(l.coords);
+                      return p ? [{ map: l.map, x: p.x, y: p.y }] : [];
+                    });
                     return (
                       <>
                         <section class="opcion" role="listitem" aria-labelledby={`${domId}-op${k}`}>
@@ -161,9 +166,14 @@ const fmtCoords = (c: string) => {
                           )}
                           <ItemList label="Necesitas" items={op.objetos ?? []} />
                           <ItemList label="Ganas" items={op.recompensas ?? []} tone="reward" />
-                          {(opPos || (op.capturas?.length ?? 0) > 0) && (
+                          {(opPos || opLugares.length > 0 || (op.capturas?.length ?? 0) > 0) && (
                             <div class="step__visual opcion__visual">
                               {opPos && <MiniMapa x={opPos.x} y={opPos.y} nombre={op.map} />}
+                              {opLugares.length > 0 && (
+                                <div class="mapas">
+                                  {opLugares.map((l) => <MiniMapa x={l.x} y={l.y} nombre={l.map} />)}
+                                </div>
+                              )}
                               <Capturas files={op.capturas ?? []} alt={op.title} />
                             </div>
                           )}
@@ -397,6 +407,10 @@ const fmtCoords = (c: string) => {
   }
   .step__visual :global(.capturas) {
     margin-top: 0.75rem;
+  }
+  /* Varios lugares en una opción: un mapa debajo del otro */
+  .mapas > :global(.minimapa) {
+    max-width: none;
   }
 
   .visor {

@@ -28,6 +28,8 @@ const opcion = z.object({
   description: z.string().min(1),
   map: z.string().optional(),
   coords: z.string().optional(),
+  /** Varios mapas para la misma opción (ej. misiones en distintos lugares): un mini mapa por cada uno. */
+  lugares: z.array(z.object({ map: z.string().min(1), coords: z.string().min(1) })).default([]),
   notes: z.string().optional(),
   objetos: z.array(itemRef).default([]),
   recompensas: z.array(itemRef).default([]),
